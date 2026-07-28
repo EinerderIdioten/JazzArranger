@@ -257,18 +257,27 @@ MVP functions:
 
 Before building the full Copilot, Phase 1 should establish an evaluation framework.
 
+Confirmed Phase 1 scope:
+
+- Target instrument: piano only.
+- Style: jazz ballad, so rhythmic feel and groove complexity stay limited.
+- Task: given a simple chord progression and a melody, rewrite the simple harmony into richer jazz harmony.
+- Comparison: evaluate the same sample set with Base LLM and Base LLM + RAG.
+
 Purpose:
 
-> Measure how well raw LLMs understand jazz harmony before adding RAG, rule-based generation, or fine-tuning.
+> Measure how well the selected LLM understands jazz-ballad reharmonization before and after adding RAG, while keeping rule-based generation and fine-tuning out of the first comparison.
 
 Phase 1 benchmark tasks:
 
+- reharmonization from simple chords to richer jazz harmony
 - rootless Type A voicings
 - rootless Type B voicings
 - Drop 2 voicings
 - guide-tone correctness
+- melody-note compatibility
 - avoid-note detection
-- voice count and register checks
+- voice count and register checks for piano
 - basic voice-leading evaluation
 
 Initial scoring dimensions:
@@ -286,6 +295,37 @@ The benchmark gives a baseline score that future systems can compare against:
 Base LLM -> Base LLM + RAG -> Rule Engine + RAG + LLM Reranker -> Fine-tuned Ranker
 ```
 
+### Phase 1 input representation
+
+Detailed ingestion design lives in [docs/realbook_ingestion/](docs/realbook_ingestion/). It covers the compact Lead-Sheet JSON v0 schema and the Real Book-style PDF to JSON workflow with human review.
+
+Use structured JSON as the canonical benchmark format. The melody should be represented as bar-local note events with explicit beat, duration, pitch spelling, and optional transcription tags. This keeps the dataset machine-scoreable and avoids ambiguity in enharmonic spelling, rests, ties, phrase position, and chord-to-melody alignment.
+
+Recommended Phase 1 data path:
+
+```text
+Authoring format: compact stream JSON, with optional compact lead-sheet text later
+Canonical dataset: normalized JSON
+Later import/export: MIDI, MusicXML, or ABC adapters
+```
+
+MIDI should not be the canonical benchmark input because it preserves timing and velocity but does not reliably preserve chord symbols, enharmonic spelling, phrase annotations, or harmonic role labels. MusicXML is accurate but verbose for LLM prompts and benchmark authoring. A compact text notation can be useful for human entry, but it should be parsed into JSON before evaluation.
+
+A compact text line can be supported later for authoring convenience:
+
+```text
+| Dm9: E4/1@1 F4/1@2 A4/2@3 | G13: F4/1@1 E4/1@2 D4/2@3 |
+```
+
+Where each note token follows:
+
+```text
+PITCH/DURATION@BEAT
+```
+
+This notation is intentionally simple enough to parse with regular expressions, but the stored benchmark case should remain structured JSON.
+
+
 ## Planned Repository Structure
 
 ```text
@@ -293,6 +333,8 @@ Base LLM -> Base LLM + RAG -> Rule Engine + RAG + LLM Reranker -> Fine-tuned Ran
 ├── benchmark/
 │   ├── dataset.json          # Curated benchmark cases
 │   └── run_eval.py           # Evaluation runner
+├── docs/
+│   └── realbook_ingestion/   # Real Book-style PDF to lead-sheet JSON design
 ├── src/
 │   ├── analyzer.py           # Music context parser
 │   ├── models.py             # Pydantic data models
@@ -407,47 +449,31 @@ vector-db: Qdrant
 
 ## Recommended Models
 
-### First model to test
+### Phase 1 model decision
 
-Use one of these as the first open-source reranker / reasoning model:
+Phase 1 should compare the same reasoning model before and after retrieval augmentation:
 
-- Qwen2.5-7B-Instruct
+```text
+Control: Qwen2.5-7B-Instruct
+Treatment: Qwen2.5-7B-Instruct + RAG
+Serving: vLLM OpenAI-compatible API
+Embedding: BAAI/bge-m3
+Vector DB: Qdrant
+```
+
+The benchmark should keep the model, decoding parameters, prompt format, and sample set fixed. The only intended variable is whether retrieved harmony knowledge is injected into the prompt.
+
+Use Qwen2.5-7B-Instruct as the default because it has strong instruction-following ability, good structured-output behavior, modest GPU requirements, and is suitable for candidate ranking and musician-facing explanations. If enough VRAM is available, Qwen2.5-14B-Instruct can be added later as a secondary comparison, but it should not replace the first Phase 1 baseline.
+
+Use BAAI/bge-m3 for embeddings because project notes, benchmark explanations, and future user feedback may mix Chinese, English, chord symbols, and music-theory terminology.
+
+### Alternative models for later comparison
+
+After the first benchmark report is stable, these models can be added as additional baselines:
+
 - Qwen2.5-14B-Instruct, if more VRAM is available
 - Llama-3.1-8B-Instruct
 - Mistral-7B-Instruct
-
-Recommendation:
-
-```text
-Qwen2.5-7B-Instruct through vLLM
-```
-
-Reason:
-
-- strong instruction-following ability
-- good structured output behavior
-- can run on modest GPU resources
-- suitable for candidate ranking and explanation
-
-### Embedding model
-
-For early RAG experiments:
-
-- BAAI/bge-small-en-v1.5
-- BAAI/bge-base-en-v1.5
-- intfloat/e5-base-v2
-
-If Chinese and English mixed knowledge is expected:
-
-- BAAI/bge-m3
-
-Recommendation:
-
-```text
-BAAI/bge-m3
-```
-
-because the project notes and music reasoning may mix Chinese and English.
 
 ## Implementation Roadmap
 
@@ -486,14 +512,19 @@ because the project notes and music reasoning may mix Chinese and English.
 
 ## Current Decision Points
 
-Before implementation, confirm:
+Confirmed for Phase 1:
 
-1. First target instrument: piano only, or piano plus guitar?
-2. First style scope: jazz standard / ballad / bebop / gospel / pop?
-3. First model endpoint: self-hosted vLLM or external API?
-4. First database stack: Qdrant only, or Qdrant plus Neo4j/PostgreSQL?
-5. Expected input format: chord chart text, MIDI, MusicXML, or all three?
-6. Whether explanations should be in English, Chinese, or bilingual.
+1. Target instrument: piano only.
+2. Style scope: jazz ballad.
+3. Task framing: transform simple harmony plus melody into richer jazz harmony.
+4. First model endpoint: self-hosted vLLM with an OpenAI-compatible API.
+5. First database stack: Qdrant only for vector retrieval.
+6. Canonical benchmark input format: structured JSON note events, with compact lead-sheet text allowed as an authoring format.
+
+Remaining decisions before implementation:
+
+1. Whether explanations should be in English, Chinese, or bilingual.
+2. Whether Phase 1 output should include only reharmonized chord symbols, or chord symbols plus playable piano voicing candidates.
 
 ---
 
