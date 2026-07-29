@@ -29,6 +29,7 @@ Out of scope for Phase 1:
 
 - [Lead-sheet JSON v0](lead_sheet_json_v0.md): compact canonical data structure for harmony and melody.
 - [PDF to JSON workflow](pdf_to_json_workflow.md): batch processing route from PDF or MusicXML into validated JSON.
+- [Compact lead-sheet notation report](compact_lead_sheet_notation_report.md): rationale, examples, and comparison with MusicXML and ABC.
 
 ## Recommended data path
 
