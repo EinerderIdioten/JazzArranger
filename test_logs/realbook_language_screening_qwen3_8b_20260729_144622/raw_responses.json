@@ -1,0 +1,632 @@
+[
+  {
+    "ordinal": 1,
+    "id": "lang_001",
+    "topic": "chord_symbol_meaning",
+    "question": "In a lead sheet, what does the chord symbol Cmaj7 mean?",
+    "expected_answer_points": [
+      "It is a C major seventh chord.",
+      "Core chord tones are C, E, G, and B.",
+      "It has a stable major-family sound, not a dominant seventh sound."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "In a lead sheet, what does the chord symbol Cmaj7 mean?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-5a5a2717016b44a4a1fb9f176ee634f2",
+      "object": "chat.completion",
+      "created": 1785307582,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nThe chord symbol Cmaj7 indicates a C major chord with a major seventh interval, consisting of the notes C, E, G, and B. It is a major triad with an added major seventh.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 65,
+        "total_tokens": 112,
+        "completion_tokens": 47,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nThe chord symbol Cmaj7 indicates a C major chord with a major seventh interval, consisting of the notes C, E, G, and B. It is a major triad with an added major seventh.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.442,
+    "usage": {
+      "prompt_tokens": 65,
+      "total_tokens": 112,
+      "completion_tokens": 47,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 2,
+    "id": "lang_002",
+    "topic": "dominant_function",
+    "question": "In the key of C major, what is the usual function of G7?",
+    "expected_answer_points": [
+      "G7 is the dominant chord, V7, in C major.",
+      "It usually wants to resolve to C or Cmaj7.",
+      "The guide tones B and F create the dominant pull."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "In the key of C major, what is the usual function of G7?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-ab65e2c28ec547c4a9edfa1d25c1a067",
+      "object": "chat.completion",
+      "created": 1785307584,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nIn the key of C major, G7 typically functions as a dominant chord, leading back to the tonic C major. It creates tension that resolves to C, reinforcing the key's harmonic structure.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 66,
+        "total_tokens": 110,
+        "completion_tokens": 44,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nIn the key of C major, G7 typically functions as a dominant chord, leading back to the tonic C major. It creates tension that resolves to C, reinforcing the key's harmonic structure.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.231,
+    "usage": {
+      "prompt_tokens": 66,
+      "total_tokens": 110,
+      "completion_tokens": 44,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 3,
+    "id": "lang_003",
+    "topic": "ii_v_i",
+    "question": "What is a ii-V-I progression in C major?",
+    "expected_answer_points": [
+      "Dm7 to G7 to Cmaj7 is a ii-V-I in C major.",
+      "It is one of the most common jazz cadences.",
+      "It moves from predominant to dominant to tonic."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "What is a ii-V-I progression in C major?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-6c7157501aba4c80b432b20c64cc70fc",
+      "object": "chat.completion",
+      "created": 1785307585,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nA ii-V-I progression in C major is Dm7-G7-Cmaj7, which outlines the chords built on the ii, V, and I degrees of the C major scale. It is a common harmonic motion in jazz leading to the tonic chord.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 61,
+        "total_tokens": 118,
+        "completion_tokens": 57,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nA ii-V-I progression in C major is Dm7-G7-Cmaj7, which outlines the chords built on the ii, V, and I degrees of the C major scale. It is a common harmonic motion in jazz leading to the tonic chord.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.636,
+    "usage": {
+      "prompt_tokens": 61,
+      "total_tokens": 118,
+      "completion_tokens": 57,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 4,
+    "id": "lang_004",
+    "topic": "guide_tones",
+    "question": "What are guide tones in jazz harmony?",
+    "expected_answer_points": [
+      "Guide tones are usually the 3rd and 7th of a chord.",
+      "They define the chord quality and function strongly.",
+      "They are important for smooth voice leading."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "What are guide tones in jazz harmony?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-ade253ec601f459eb6eaf446639165bd",
+      "object": "chat.completion",
+      "created": 1785307586,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nGuide tones are the 3rd and 7th of a chord, used to outline the chord progression and provide direction in jazz harmony. They help musicians navigate through chord changes and are essential for improvisation and accompaniment.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 58,
+        "total_tokens": 109,
+        "completion_tokens": 51,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nGuide tones are the 3rd and 7th of a chord, used to outline the chord progression and provide direction in jazz harmony. They help musicians navigate through chord changes and are essential for improvisation and accompaniment.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.356,
+    "usage": {
+      "prompt_tokens": 58,
+      "total_tokens": 109,
+      "completion_tokens": 51,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 5,
+    "id": "lang_005",
+    "topic": "rootless_voicing",
+    "question": "What is a rootless piano voicing?",
+    "expected_answer_points": [
+      "It is a voicing that omits the root of the chord.",
+      "It usually keeps important tones such as the 3rd, 7th, and tensions.",
+      "It is common in jazz piano, especially when a bass player covers the root."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "What is a rootless piano voicing?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-a3e5852c27104b9284f8534ece837345",
+      "object": "chat.completion",
+      "created": 1785307588,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nA rootless piano voicing is a chord voicing that omits the root note, focusing on the upper structure and extensions to create a more open and harmonically rich sound. It is commonly used in jazz to avoid clashing with the bass line and to emphasize the chord's color and tension.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 59,
+        "total_tokens": 124,
+        "completion_tokens": 65,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nA rootless piano voicing is a chord voicing that omits the root note, focusing on the upper structure and extensions to create a more open and harmonically rich sound. It is commonly used in jazz to avoid clashing with the bass line and to emphasize the chord's color and tension.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.718,
+    "usage": {
+      "prompt_tokens": 59,
+      "total_tokens": 124,
+      "completion_tokens": 65,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 6,
+    "id": "lang_006",
+    "topic": "tensions",
+    "question": "In jazz chord symbols, what do extensions like 9, 11, and 13 usually mean?",
+    "expected_answer_points": [
+      "They are chord tensions above the basic seventh chord.",
+      "9 relates to the second scale degree, 11 to the fourth, and 13 to the sixth, placed in chord context.",
+      "They add color but must fit the chord quality and melody."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "In jazz chord symbols, what do extensions like 9, 11, and 13 usually mean?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-dcbad59bed1f4a68903cd8d2d2388a39",
+      "object": "chat.completion",
+      "created": 1785307590,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nIn jazz chord symbols, extensions like 9, 11, and 13 refer to added notes above the 7th scale degree. These notes extend the chord's sound, adding color and tension. The 9th is a major 2nd above the 7th, the 11th is a minor 3rd above the 7th, and the 13th is a major 6th above the 7th.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 73,
+        "total_tokens": 172,
+        "completion_tokens": 99,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nIn jazz chord symbols, extensions like 9, 11, and 13 refer to added notes above the 7th scale degree. These notes extend the chord's sound, adding color and tension. The 9th is a major 2nd above the 7th, the 11th is a minor 3rd above the 7th, and the 13th is a major 6th above the 7th.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 2.662,
+    "usage": {
+      "prompt_tokens": 73,
+      "total_tokens": 172,
+      "completion_tokens": 99,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 7,
+    "id": "lang_007",
+    "topic": "avoid_notes",
+    "question": "Why can the natural 11th be problematic on a major seventh chord such as Cmaj7?",
+    "expected_answer_points": [
+      "The natural 11th, F, can clash with the major third, E.",
+      "That half-step conflict can sound unstable if not handled intentionally.",
+      "A #11, F#, is often a smoother Lydian color over Cmaj7."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "Why can the natural 11th be problematic on a major seventh chord such as Cmaj7?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-757e9fa0c53740eb88ae8384364cd7d1",
+      "object": "chat.completion",
+      "created": 1785307592,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nThe natural 11th in a Cmaj7 chord (C, E, G, B, D) creates a dissonant interval with the third (E), resulting in a tense, unstable sound that is not typically used in traditional jazz harmony. It is often replaced with the sharp 11th (D#) to achieve a more consonant and common sound in jazz contexts.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 71,
+        "total_tokens": 156,
+        "completion_tokens": 85,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nThe natural 11th in a Cmaj7 chord (C, E, G, B, D) creates a dissonant interval with the third (E), resulting in a tense, unstable sound that is not typically used in traditional jazz harmony. It is often replaced with the sharp 11th (D#) to achieve a more consonant and common sound in jazz contexts.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 2.251,
+    "usage": {
+      "prompt_tokens": 71,
+      "total_tokens": 156,
+      "completion_tokens": 85,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 8,
+    "id": "lang_008",
+    "topic": "tritone_substitution",
+    "question": "What is a tritone substitution for G7 resolving to Cmaj7?",
+    "expected_answer_points": [
+      "Db7 can substitute for G7.",
+      "G7 and Db7 share the same tritone guide-tone relationship, enharmonically B/F and Cb/F.",
+      "Db7 resolves down by half step to Cmaj7, creating chromatic bass motion."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "What is a tritone substitution for G7 resolving to Cmaj7?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-08418fe6787a43f492300a5e0021524c",
+      "object": "chat.completion",
+      "created": 1785307594,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nThe tritone substitution for G7 resolving to Cmaj7 is Db7. It replaces the G7 chord with a chord a tritone away (Db7), which resolves smoothly to Cmaj7. This substitution creates a more colorful and chromatic sound while maintaining harmonic function.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 65,
+        "total_tokens": 126,
+        "completion_tokens": 61,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nThe tritone substitution for G7 resolving to Cmaj7 is Db7. It replaces the G7 chord with a chord a tritone away (Db7), which resolves smoothly to Cmaj7. This substitution creates a more colorful and chromatic sound while maintaining harmonic function.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.638,
+    "usage": {
+      "prompt_tokens": 65,
+      "total_tokens": 126,
+      "completion_tokens": 61,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 9,
+    "id": "lang_009",
+    "topic": "melody_compatibility",
+    "question": "When reharmonizing a melody note E over a C major phrase, why might Cmaj7 or Am7 both be reasonable choices?",
+    "expected_answer_points": [
+      "E is the major third of Cmaj7.",
+      "E is also the fifth of Am7.",
+      "Both chords can support the melody note, but they imply different harmonic functions and colors."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "When reharmonizing a melody note E over a C major phrase, why might Cmaj7 or Am7 both be reasonable choices?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-e769cfd0ba2241479589c487fe43ed38",
+      "object": "chat.completion",
+      "created": 1785307596,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nBoth Cmaj7 and Am7 provide a consonant sound over E. Cmaj7 offers a bright, stable resolution, while Am7 introduces a more colorful, modal sound that can add tension and interest.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 78,
+        "total_tokens": 125,
+        "completion_tokens": 47,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nBoth Cmaj7 and Am7 provide a consonant sound over E. Cmaj7 offers a bright, stable resolution, while Am7 introduces a more colorful, modal sound that can add tension and interest.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.233,
+    "usage": {
+      "prompt_tokens": 78,
+      "total_tokens": 125,
+      "completion_tokens": 47,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "ordinal": 10,
+    "id": "lang_010",
+    "topic": "ballad_pacing",
+    "question": "In a slow jazz ballad, why is it often bad to change to a complex new chord on every beat?",
+    "expected_answer_points": [
+      "Too many fast changes can sound crowded or unnatural in a ballad.",
+      "The harmony needs space to support the melody and phrasing.",
+      "Good reharmonization balances color with musical pacing."
+    ],
+    "request": {
+      "model": "qwen3-8b",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Answer each jazz harmony screening question briefly in 1-3 sentences. Do not generate full arrangements. Focus only on basic jazz harmony concepts. Do not show reasoning. /no_think"
+        },
+        {
+          "role": "user",
+          "content": "In a slow jazz ballad, why is it often bad to change to a complex new chord on every beat?"
+        }
+      ],
+      "temperature": 0,
+      "max_tokens": 192
+    },
+    "response": {
+      "id": "chatcmpl-b419bff6049e4bb79042748faadbf28a",
+      "object": "chat.completion",
+      "created": 1785307597,
+      "model": "qwen3-8b",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "reasoning_content": "\n\n",
+            "content": "\n\nIn a slow jazz ballad, changing to a complex new chord on every beat can disrupt the smooth, flowing feel and make the harmony feel cluttered or unstable. It can also reduce the space for melodic and rhythmic development, which is essential in a ballad's expressive style.",
+            "tool_calls": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop",
+          "stop_reason": null
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 73,
+        "total_tokens": 136,
+        "completion_tokens": 63,
+        "prompt_tokens_details": null
+      },
+      "prompt_logprobs": null
+    },
+    "answer_content": "\n\nIn a slow jazz ballad, changing to a complex new chord on every beat can disrupt the smooth, flowing feel and make the harmony feel cluttered or unstable. It can also reduce the space for melodic and rhythmic development, which is essential in a ballad's expressive style.",
+    "reasoning_content": "\n\n",
+    "finish_reason": "stop",
+    "latency_s": 1.839,
+    "usage": {
+      "prompt_tokens": 73,
+      "total_tokens": 136,
+      "completion_tokens": 63,
+      "prompt_tokens_details": null
+    }
+  }
+]

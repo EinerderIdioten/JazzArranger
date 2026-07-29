@@ -1,0 +1,76 @@
+{
+  "benchmark_file": "realbook_benchmark/language_screening_questions.json",
+  "model": "qwen3-8b",
+  "run_dir": "test_logs/realbook_language_screening_qwen3_8b_20260729_144622",
+  "scoring_rubric": {
+    "0": "wrong or irrelevant",
+    "1": "partially correct",
+    "2": "correct and clear"
+  },
+  "total_score": 17,
+  "max_score": 20,
+  "pass_threshold": 14,
+  "result": "pass",
+  "scores": [
+    {
+      "id": "lang_001",
+      "topic": "chord_symbol_meaning",
+      "score": 2,
+      "note": "Correctly identifies Cmaj7 as C major with major seventh and gives C, E, G, B."
+    },
+    {
+      "id": "lang_002",
+      "topic": "dominant_function",
+      "score": 2,
+      "note": "Correctly identifies dominant function and resolution to C; guide tones are omitted."
+    },
+    {
+      "id": "lang_003",
+      "topic": "ii_v_i",
+      "score": 2,
+      "note": "Correctly gives Dm7-G7-Cmaj7 and describes common jazz motion to tonic."
+    },
+    {
+      "id": "lang_004",
+      "topic": "guide_tones",
+      "score": 2,
+      "note": "Correctly names 3rd and 7th and explains their role in outlining changes."
+    },
+    {
+      "id": "lang_005",
+      "topic": "rootless_voicing",
+      "score": 2,
+      "note": "Correctly says the root is omitted and upper structures/extensions are emphasized."
+    },
+    {
+      "id": "lang_006",
+      "topic": "tensions",
+      "score": 1,
+      "note": "Partially correct on color/tension, but interval explanation is wrong."
+    },
+    {
+      "id": "lang_007",
+      "topic": "avoid_notes",
+      "score": 1,
+      "note": "Partially correct on clash with the 3rd, but natural 11 and #11 pitches are wrong."
+    },
+    {
+      "id": "lang_008",
+      "topic": "tritone_substitution",
+      "score": 2,
+      "note": "Correctly gives Db7 and explains chromatic resolution to Cmaj7."
+    },
+    {
+      "id": "lang_009",
+      "topic": "melody_compatibility",
+      "score": 1,
+      "note": "Recognizes compatibility, but omits that E is 3rd of Cmaj7 and 5th of Am7."
+    },
+    {
+      "id": "lang_010",
+      "topic": "ballad_pacing",
+      "score": 2,
+      "note": "Correctly explains clutter and loss of melodic space in slow ballad pacing."
+    }
+  ]
+}
