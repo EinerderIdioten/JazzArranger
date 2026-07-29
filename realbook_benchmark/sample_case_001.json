@@ -1,0 +1,87 @@
+{
+  "schema": "reharm_benchmark.v0",
+  "case_id": "phase1_ballad_001_major_ii_v_i_turnaround",
+  "level": 1,
+  "title": "Original Ballad Phrase 001",
+  "source_status": "original_project_authored_fragment",
+  "task_type": "jazz_ballad_reharmonization",
+  "input": {
+    "context": {
+      "key": "C major",
+      "meter": "4/4",
+      "tempo": 72,
+      "style": "jazz_ballad",
+      "instrument": "piano",
+      "prompt_summary": "Rewrite a simple four-bar C major ballad phrase into richer Real Book-level jazz harmony while preserving the melody."
+    },
+    "stream_schema": {
+      "harmony_stream": ["bar", "beat", "symbol", "duration_beats"],
+      "melody_stream": ["bar", "beat", "pitch", "duration_beats", "tag"]
+    },
+    "harmony_stream": [
+      [1, 1.0, "Cmaj7", 4.0],
+      [2, 1.0, "Am7", 4.0],
+      [3, 1.0, "Dm7", 4.0],
+      [4, 1.0, "G7", 4.0]
+    ],
+    "melody_stream": [
+      [1, 1.0, "E4", 2.0, "structural"],
+      [1, 3.0, "G4", 1.0, "structural"],
+      [1, 4.0, "A4", 1.0, "passing"],
+      [2, 1.0, "B4", 2.0, "structural"],
+      [2, 3.0, "A4", 1.0, "structural"],
+      [2, 4.0, "G4", 1.0, "passing"],
+      [3, 1.0, "F4", 2.0, "structural"],
+      [3, 3.0, "E4", 1.0, "structural"],
+      [3, 4.0, "D4", 1.0, "passing"],
+      [4, 1.0, "B3", 1.0, "structural"],
+      [4, 2.0, "D4", 1.0, "structural"],
+      [4, 3.0, "F4", 2.0, "structural"]
+    ]
+  },
+  "reference_output": {
+    "reharmonized_harmony_stream": [
+      [1, 1.0, "Cmaj9", 2.0],
+      [1, 3.0, "E7b9", 2.0],
+      [2, 1.0, "Am9", 2.0],
+      [2, 3.0, "A7b13", 2.0],
+      [3, 1.0, "Dm9", 2.0],
+      [3, 3.0, "Db7#11", 2.0],
+      [4, 1.0, "Cmaj9/G", 2.0],
+      [4, 3.0, "G13sus", 2.0]
+    ],
+    "reference_rationale": [
+      "Cmaj9 preserves E and G as stable major-family melody tones while adding ballad color.",
+      "E7b9 functions as V/vi and supports G/A/B melody motion as altered dominant color leading into Am9.",
+      "A7b13 creates a secondary dominant pull into Dm9 without breaking the descending melody contour.",
+      "Db7#11 is a tritone substitute for G7, creating chromatic root motion into the final dominant area.",
+      "G13sus keeps F as a stable suspended dominant color and avoids forcing an early resolution."
+    ]
+  },
+  "expected_concepts": [
+    "diatonic reharmonization",
+    "secondary dominant",
+    "ii-V motion",
+    "tritone substitution",
+    "major 9 color",
+    "dominant suspension",
+    "melody-note compatibility",
+    "jazz ballad pacing"
+  ],
+  "common_failure_modes": [
+    "Changes every beat with no ballad pacing.",
+    "Uses substitutions that clash with structural melody notes.",
+    "Treats the final F melody note over G7 as an avoid tone instead of a valid suspended or dominant seventh color.",
+    "Adds complex altered dominants without explaining their functional resolution.",
+    "Outputs only chord names without any musical rationale."
+  ],
+  "model_response_requirements": {
+    "format": "json",
+    "fields": [
+      "reharmonized_harmony_stream",
+      "explanation",
+      "risk_notes"
+    ],
+    "notes": "The response should preserve the melody and keep the harmonic rhythm appropriate for a slow jazz ballad."
+  }
+}
