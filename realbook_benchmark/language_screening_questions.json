@@ -1,0 +1,127 @@
+{
+  "schema": "language_screening.v0",
+  "purpose": "Very simple language-level jazz harmony questions for checking whether a small model understands basic Real Book / jazz-ballad terminology before running reharmonization benchmarks.",
+  "instructions": {
+    "target_model": "Qwen8B or similar small instruction model",
+    "response_mode": "short natural-language answers",
+    "recommended_prompt": "Answer each question briefly. Do not generate full arrangements. Focus only on basic jazz harmony concepts.",
+    "scoring": "Each question can be scored 0, 1, or 2 points: 0 = wrong or irrelevant, 1 = partially correct, 2 = correct and clear. Total maximum: 20 points."
+  },
+  "questions": [
+    {
+      "id": "lang_001",
+      "level": "basic",
+      "topic": "chord_symbol_meaning",
+      "question": "In a lead sheet, what does the chord symbol Cmaj7 mean?",
+      "expected_answer_points": [
+        "It is a C major seventh chord.",
+        "Core chord tones are C, E, G, and B.",
+        "It has a stable major-family sound, not a dominant seventh sound."
+      ]
+    },
+    {
+      "id": "lang_002",
+      "level": "basic",
+      "topic": "dominant_function",
+      "question": "In the key of C major, what is the usual function of G7?",
+      "expected_answer_points": [
+        "G7 is the dominant chord, V7, in C major.",
+        "It usually wants to resolve to C or Cmaj7.",
+        "The guide tones B and F create the dominant pull."
+      ]
+    },
+    {
+      "id": "lang_003",
+      "level": "basic",
+      "topic": "ii_v_i",
+      "question": "What is a ii-V-I progression in C major?",
+      "expected_answer_points": [
+        "Dm7 to G7 to Cmaj7 is a ii-V-I in C major.",
+        "It is one of the most common jazz cadences.",
+        "It moves from predominant to dominant to tonic."
+      ]
+    },
+    {
+      "id": "lang_004",
+      "level": "basic",
+      "topic": "guide_tones",
+      "question": "What are guide tones in jazz harmony?",
+      "expected_answer_points": [
+        "Guide tones are usually the 3rd and 7th of a chord.",
+        "They define the chord quality and function strongly.",
+        "They are important for smooth voice leading."
+      ]
+    },
+    {
+      "id": "lang_005",
+      "level": "basic",
+      "topic": "rootless_voicing",
+      "question": "What is a rootless piano voicing?",
+      "expected_answer_points": [
+        "It is a voicing that omits the root of the chord.",
+        "It usually keeps important tones such as the 3rd, 7th, and tensions.",
+        "It is common in jazz piano, especially when a bass player covers the root."
+      ]
+    },
+    {
+      "id": "lang_006",
+      "level": "basic",
+      "topic": "tensions",
+      "question": "In jazz chord symbols, what do extensions like 9, 11, and 13 usually mean?",
+      "expected_answer_points": [
+        "They are chord tensions above the basic seventh chord.",
+        "9 relates to the second scale degree, 11 to the fourth, and 13 to the sixth, placed in chord context.",
+        "They add color but must fit the chord quality and melody."
+      ]
+    },
+    {
+      "id": "lang_007",
+      "level": "basic",
+      "topic": "avoid_notes",
+      "question": "Why can the natural 11th be problematic on a major seventh chord such as Cmaj7?",
+      "expected_answer_points": [
+        "The natural 11th, F, can clash with the major third, E.",
+        "That half-step conflict can sound unstable if not handled intentionally.",
+        "A #11, F#, is often a smoother Lydian color over Cmaj7."
+      ]
+    },
+    {
+      "id": "lang_008",
+      "level": "basic",
+      "topic": "tritone_substitution",
+      "question": "What is a tritone substitution for G7 resolving to Cmaj7?",
+      "expected_answer_points": [
+        "Db7 can substitute for G7.",
+        "G7 and Db7 share the same tritone guide-tone relationship, enharmonically B/F and Cb/F.",
+        "Db7 resolves down by half step to Cmaj7, creating chromatic bass motion."
+      ]
+    },
+    {
+      "id": "lang_009",
+      "level": "basic",
+      "topic": "melody_compatibility",
+      "question": "When reharmonizing a melody note E over a C major phrase, why might Cmaj7 or Am7 both be reasonable choices?",
+      "expected_answer_points": [
+        "E is the major third of Cmaj7.",
+        "E is also the fifth of Am7.",
+        "Both chords can support the melody note, but they imply different harmonic functions and colors."
+      ]
+    },
+    {
+      "id": "lang_010",
+      "level": "basic",
+      "topic": "ballad_pacing",
+      "question": "In a slow jazz ballad, why is it often bad to change to a complex new chord on every beat?",
+      "expected_answer_points": [
+        "Too many fast changes can sound crowded or unnatural in a ballad.",
+        "The harmony needs space to support the melody and phrasing.",
+        "Good reharmonization balances color with musical pacing."
+      ]
+    }
+  ],
+  "evaluation_notes": {
+    "pass_threshold": "A score of 14/20 suggests the model understands enough basic terminology to try the harder reharmonization case.",
+    "warning_range": "A score from 8 to 13 suggests the model knows some terms but may be unreliable for harmony generation.",
+    "fail_range": "Below 8 suggests starting with simpler prompting, RAG, or a stronger model before testing full reharmonization."
+  }
+}

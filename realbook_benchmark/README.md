@@ -14,6 +14,7 @@ Current status: one sample case is included for review before expanding to ten c
 
 ## Files
 
-- `sample_case_001.json`: one benchmark case using the repository's compact lead-sheet JSON style.
+- `language_screening_questions.json`: ten simple language-level jazz harmony questions for first-pass model screening.
+- `sample_case_001.json`: one harder benchmark case using the repository's compact lead-sheet JSON style.
 - `evaluation.md`: scoring rubric for manually evaluating the model response.
 - `prompt_template.md`: prompt template for testing Qwen8B or another OpenAI-compatible model.
