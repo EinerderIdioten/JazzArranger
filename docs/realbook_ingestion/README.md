@@ -1,11 +1,22 @@
-# Real Book to Lead-Sheet JSON
+# Real Book Ingestion and Lead-Sheet Representation
 
-This folder defines the Phase 1 ingestion plan for turning Real Book-style lead sheets into compact, structured JSON that can be used for jazz-ballad reharmonization benchmarks.
+This folder defines the Phase 1 representation strategy for Real Book-style jazz-ballad harmony experiments.
 
-Phase 1 focuses on two goals:
+Phase 1 focuses on piano-only lead-sheet reharmonization:
 
-1. Design a structured data format for Real Book-style simple harmony and melody in jazz ballads.
-2. Design a batch processing workflow that can combine automated extraction with human correction.
+```text
+simple/source harmony + single-line melody
+  -> richer jazz-ballad harmony
+```
+
+The project separates storage from model presentation:
+
+```text
+MusicXML / ABC / manual transcription
+  -> canonical lead-sheet storage
+  -> generated temporal rendering
+  -> LLM prompt / RAG chunk / evaluator
+```
 
 ## Scope
 
@@ -14,35 +25,47 @@ Confirmed Phase 1 scope:
 - Instrument: piano only.
 - Style: jazz ballad.
 - Source material shape: Real Book-style lead sheets with chord symbols and single-line melody.
-- Model task: given simple harmony plus melody, produce richer jazz harmony.
+- Model task: given simple/source harmony plus melody, produce richer jazz harmony.
 - Benchmark comparison: Base LLM vs Base LLM + RAG on the same sample set.
 
-Out of scope for Phase 1:
+Out of scope for this documentation pass:
 
+- PDF extraction implementation.
 - Full arrangement extraction.
-- Drum/groove transcription.
-- Bass line transcription.
-- Fully automatic PDF recognition without human review.
-- Fine-tuning or training a model.
+- Drum, groove, or bass transcription.
+- Fine-tuning or model training.
+- Score rendering.
 
 ## Documents
 
-- [Lead-sheet JSON v0](lead_sheet_json_v0.md): compact canonical data structure for harmony and melody.
-- [PDF to JSON workflow](pdf_to_json_workflow.md): batch processing route from PDF or MusicXML into validated JSON.
-- [Compact lead-sheet notation report](compact_lead_sheet_notation_report.md): rationale, examples, and comparison with MusicXML and ABC.
+- [Canonical Lead-Sheet Storage](canonical_storage.md): source-of-truth JSON structure for storage, validation, indexing, and deterministic scoring.
+- [Model Temporal Rendering](model_temporal_rendering.md): conversion from canonical storage into event grids, compact text, prompt views, and RAG chunks for model consumption.
 
-## Recommended data path
+## Design rule
+
+Canonical storage is optimized for software correctness. Model-facing rendering is optimized for temporal readability.
+
+Do not force one format to solve both problems.
 
 ```text
-Real Book-style PDF
-  -> page images or MusicXML where available
-  -> OMR / manual compact transcription
-  -> normalized lead-sheet JSON
-  -> validation and human review
-  -> benchmark case generation
+harmony_stream + melody_stream = canonical source of truth
+
+event_grid / compact_text / prompt_view = generated derived views
 ```
 
-The canonical dataset should be pure JSON without comments. Human-facing notes, review state, and provenance should live in metadata fields rather than JSON comments.
+## Why this split exists
+
+Parallel canonical streams with absolute bar-beat coordinates are good for validation and scoring, but they can separate simultaneous events in the text. For example, a chord event and a melody event that happen on the same beat may live in different arrays.
+
+A model should usually see a rendered time-ordered view instead:
+
+```text
+Bar 1:
+- Beat 1.0: Cmaj7, melody E4 for 2 beats, structural
+- Beat 3.0: Cmaj7 continues, melody G4 for 1 beat, structural
+```
+
+This keeps retrieval and validation deterministic while making the musical timeline easier for smaller LLMs to follow.
 
 ## Licensing note
 
