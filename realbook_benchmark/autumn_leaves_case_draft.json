@@ -1,0 +1,114 @@
+{
+  "schema": "reharm_benchmark.v0",
+  "case_id": "phase1_standard_autumn_leaves_001_draft",
+  "level": 2,
+  "title": "Autumn Leaves - First Phrase Draft",
+  "source_status": "rights_sensitive_user_transcription_required",
+  "task_type": "jazz_ballad_reharmonization",
+  "copyright_note": "This draft intentionally does not reproduce the copyrighted melody or a specific lead-sheet transcription. Fill melody_stream and source harmony only from user-provided, rights-cleared material.",
+  "input": {
+    "context": {
+      "standard": "Autumn Leaves",
+      "composer_credit": "Joseph Kosma; lyrics by Jacques Prévert / Johnny Mercer depending on edition",
+      "key": "USER_TO_CONFIRM",
+      "meter": "4/4",
+      "tempo": 72,
+      "style": "jazz_ballad",
+      "instrument": "piano",
+      "phrase_scope": "first phrase; user to confirm whether this means 4 bars or 8 bars in the chosen edition",
+      "prompt_summary": "Given the first phrase of Autumn Leaves as melody plus simple/source harmony, create a richer jazz-ballad reharmonization while preserving the melody."
+    },
+    "stream_schema": {
+      "harmony_stream": ["bar", "beat", "symbol", "duration_beats"],
+      "melody_stream": ["bar", "beat", "pitch", "duration_beats", "tag"]
+    },
+    "functional_harmony_frame_for_design_only": [
+      [1, 1.0, "minor-predominant or ii-family opening area", 4.0],
+      [2, 1.0, "dominant resolving by fifth", 4.0],
+      [3, 1.0, "relative-major tonic area", 4.0],
+      [4, 1.0, "subdominant/major color continuation", 4.0],
+      [5, 1.0, "minor iiø approach area", 4.0],
+      [6, 1.0, "dominant to minor tonic", 4.0],
+      [7, 1.0, "minor tonic area", 4.0],
+      [8, 1.0, "turnaround or phrase continuation", 4.0]
+    ],
+    "harmony_stream": "TO_BE_FILLED_FROM_USER_SUPPLIED_TRANSCRIPTION",
+    "melody_stream": "TO_BE_FILLED_FROM_USER_SUPPLIED_TRANSCRIPTION"
+  },
+  "model_task": {
+    "instructions": [
+      "Preserve every supplied melody note.",
+      "Keep the result suitable for slow jazz-ballad piano.",
+      "Do not change harmony so frequently that the phrase loses lyrical space.",
+      "Prefer idiomatic Real Book-level reharmonization over extremely modern outside harmony.",
+      "Return strict JSON only."
+    ],
+    "expected_response_fields": [
+      "reharmonized_harmony_stream",
+      "optional_voicing_plan",
+      "explanation",
+      "risk_notes"
+    ]
+  },
+  "reference_output_design": {
+    "status": "not_final_until_melody_is_supplied",
+    "acceptable_concepts": [
+      "diatonic cycle-of-fifths motion",
+      "minor ii-V-i resolution",
+      "secondary dominant into target minor or relative major area",
+      "tritone substitute used sparingly before a resolution point",
+      "passing diminished chord only if it supports melody and bass motion",
+      "minor 9 and major 9 color where melody permits",
+      "dominant sus or altered dominant only when melody note supports it"
+    ],
+    "concepts_to_avoid_in_basic_test": [
+      "reharmonizing every beat without necessity",
+      "modal substitutions that obscure the phrase's standard identity",
+      "altered dominants that clash with a structural melody note",
+      "changing key center without explaining the cadence"
+    ]
+  },
+  "evaluation": {
+    "total_points": 100,
+    "categories": [
+      {
+        "name": "melody_compatibility",
+        "points": 25,
+        "description": "Every structural melody note should be supported as a chord tone or idiomatic tension."
+      },
+      {
+        "name": "standard_identity",
+        "points": 15,
+        "description": "The reharmonization should still feel recognizably connected to Autumn Leaves rather than replacing it with unrelated harmony."
+      },
+      {
+        "name": "functional_harmony",
+        "points": 20,
+        "description": "The answer should show clear cycle motion, dominant resolution, and minor-key cadence awareness."
+      },
+      {
+        "name": "jazz_ballad_style",
+        "points": 15,
+        "description": "The harmonic rhythm and color should fit a slow piano ballad."
+      },
+      {
+        "name": "explanation_quality",
+        "points": 15,
+        "description": "The model should explain melody support, substitutions, and resolutions in musician language."
+      },
+      {
+        "name": "response_format",
+        "points": 10,
+        "description": "The response should be valid JSON with bar-local timing and chord symbols."
+      }
+    ],
+    "pass_threshold": 75
+  },
+  "needed_from_user_before_finalizing": [
+    "Confirm the edition/key to use for Autumn Leaves.",
+    "Confirm whether the first phrase means 4 bars or 8 bars.",
+    "Provide the first-phrase harmony_stream with bar, beat, chord symbol, and duration.",
+    "Provide the first-phrase melody_stream with bar, beat, pitch, duration, and tag.",
+    "Confirm whether the benchmark should use the source Real Book harmony as input or a simplified harmony reduction as input."
+  ]
+}
