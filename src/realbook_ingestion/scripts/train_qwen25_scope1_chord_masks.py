@@ -48,6 +48,7 @@ def compact_json(value: Any) -> str:
 
 
 def append_jsonl(path: Path, row: dict[str, Any]) -> None:
+    row.setdefault("logged_at", datetime.now(timezone.utc).isoformat())
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
@@ -844,12 +845,23 @@ def initialize_new_token_embeddings(
     }
 
 
-def mask_old_token_row_grads(parameter: torch.nn.Parameter, old_vocab_size: int) -> Any:
+def mask_token_row_grads(
+    parameter: torch.nn.Parameter,
+    trainable_token_ids: list[int],
+) -> Any:
+    allowed_rows = sorted(
+        token_id
+        for token_id in set(trainable_token_ids)
+        if 0 <= token_id < parameter.shape[0]
+    )
+
     def hook(grad: torch.Tensor) -> torch.Tensor:
         if grad is None:
             return grad
         grad = grad.clone()
-        grad[:old_vocab_size].zero_()
+        row_mask = torch.zeros(grad.shape[0], dtype=torch.bool, device=grad.device)
+        row_mask[allowed_rows] = True
+        grad[~row_mask].zero_()
         return grad
 
     return parameter.register_hook(hook)
@@ -858,7 +870,7 @@ def mask_old_token_row_grads(parameter: torch.nn.Parameter, old_vocab_size: int)
 def set_trainable_phase(
     model: nn.Module,
     phase: str,
-    old_vocab_size: int,
+    trainable_token_ids: list[int],
     new_token_rows_only: bool,
 ) -> list[Any]:
     hooks: list[Any] = []
@@ -868,12 +880,12 @@ def set_trainable_phase(
         input_embeddings = model.get_input_embeddings()
         input_embeddings.weight.requires_grad = True
         if new_token_rows_only:
-            hooks.append(mask_old_token_row_grads(input_embeddings.weight, old_vocab_size))
+            hooks.append(mask_token_row_grads(input_embeddings.weight, trainable_token_ids))
         output_embeddings = model.get_output_embeddings()
         if output_embeddings is not None and output_embeddings.weight is not input_embeddings.weight:
             output_embeddings.weight.requires_grad = True
             if new_token_rows_only:
-                hooks.append(mask_old_token_row_grads(output_embeddings.weight, old_vocab_size))
+                hooks.append(mask_token_row_grads(output_embeddings.weight, trainable_token_ids))
     return hooks
 
 
@@ -905,12 +917,12 @@ def train_one_phase(
     start_epoch: int,
     num_epochs: int,
     progress_path: Path,
-    old_vocab_size: int,
+    trainable_token_ids: list[int],
 ) -> list[dict[str, Any]]:
     hooks = set_trainable_phase(
         scope_model.model,
         phase=phase,
-        old_vocab_size=old_vocab_size,
+        trainable_token_ids=trainable_token_ids,
         new_token_rows_only=args.warmup_new_token_rows_only,
     )
     trainable_parameters = [parameter for parameter in scope_model.parameters() if parameter.requires_grad]
@@ -1083,21 +1095,30 @@ def write_report(path: Path, metadata: dict[str, Any], scores: dict[str, Any], r
 def load_tokenizer_and_model(args: argparse.Namespace) -> tuple[Any, nn.Module, dict[str, Any]]:
     from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
+    base_tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
+    base_tokenizer_vocab_size = len(base_tokenizer)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_path, trust_remote_code=True)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
-    old_vocab_size = int(getattr(config, "vocab_size"))
+    model_config_vocab_size = int(getattr(config, "vocab_size"))
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float16
     model = AutoModelForCausalLM.from_pretrained(
         args.model_path,
         torch_dtype=dtype,
         trust_remote_code=True,
     )
+    embedding_rows_before_resize = model.get_input_embeddings().weight.shape[0]
     model.resize_token_embeddings(len(tokenizer))
+    embedding_rows_after_resize = model.get_input_embeddings().weight.shape[0]
     model.config.use_cache = False
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
+    trainable_new_token_ids = [
+        single_token_id(tokenizer, token)
+        for token in CONTROL_TOKENS + CHANGE_TOKENS + ROOT_TOKENS + QUALITY_TOKENS
+    ]
+    old_vocab_size = base_tokenizer_vocab_size
     if args.initialize_new_token_embeddings:
         init_summary = initialize_new_token_embeddings(
             model,
@@ -1114,7 +1135,12 @@ def load_tokenizer_and_model(args: argparse.Namespace) -> tuple[Any, nn.Module, 
         }
     metadata = {
         "old_vocab_size": old_vocab_size,
+        "base_tokenizer_vocab_size": base_tokenizer_vocab_size,
+        "model_config_vocab_size": model_config_vocab_size,
+        "embedding_rows_before_resize": embedding_rows_before_resize,
+        "embedding_rows_after_resize": embedding_rows_after_resize,
         "new_vocab_size": len(tokenizer),
+        "trainable_new_token_ids": trainable_new_token_ids,
         "embedding_initialization": init_summary,
         "change_token_ids": [single_token_id(tokenizer, token) for token in CHANGE_TOKENS],
         "root_token_ids": [single_token_id(tokenizer, token) for token in ROOT_TOKENS],
@@ -1272,7 +1298,7 @@ def main(argv: list[str]) -> int:
                     start_epoch=1,
                     num_epochs=args.warmup_epochs,
                     progress_path=progress_path,
-                    old_vocab_size=tokenizer_metadata["old_vocab_size"],
+                    trainable_token_ids=tokenizer_metadata["trainable_new_token_ids"],
                 )
             )
             if args.save_warmup_model:
@@ -1291,7 +1317,7 @@ def main(argv: list[str]) -> int:
                     start_epoch=args.warmup_epochs + 1,
                     num_epochs=args.epochs,
                     progress_path=progress_path,
-                    old_vocab_size=tokenizer_metadata["old_vocab_size"],
+                    trainable_token_ids=tokenizer_metadata["trainable_new_token_ids"],
                 )
             )
         write_jsonl(args.output_dir / "train_metrics.jsonl", train_metrics)
