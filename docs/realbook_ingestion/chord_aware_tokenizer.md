@@ -109,6 +109,94 @@ generalization. Transposition augmentation across 12 keys should be used before
 serious training; it turns the same tune-level corpus into roughly twelve
 times as many root/quality events while preserving functional patterns.
 
+## Scope-1 Mask Training Loss
+
+The first full-parameter training scope predicts chord-change timing plus the
+basic chord root and quality at every rendered candidate checkpoint. Each
+candidate contributes three target-tail mask positions:
+
+```text
+[bar, beat, M, M, M]
+           |  |  |
+           |  |  quality mask
+           |  root mask
+           change mask
+```
+
+The model is still a causal LM. The trainer gathers logits only at these mask
+positions instead of asking the model to freely generate an answer string.
+
+Notation:
+
+- `m[b,t]`: valid slot mask, excluding padding.
+- `y[b,t]`: gold change label, `1` if `harmony_stream` starts a new chord at
+  slot `t`, otherwise `0`.
+- `c0[b,t]`, `c1[b,t]`: LM logits for `<CHANGE:0>` and `<CHANGE:1>` at the
+  change mask.
+- `s[b,t] = c1[b,t] - c0[b,t]`: binary change logit.
+- `p[b,t] = sigmoid(s[b,t])`: predicted change probability.
+- `r[b,t]`: gold root class index, valid only when `y[b,t] = 1`.
+- `q[b,t]`: gold quality class index, valid only when `y[b,t] = 1`.
+
+Change loss is weighted binary cross entropy over valid candidate slots:
+
+```text
+L_change = mean_m BCEWithLogits(s[b,t], y[b,t], pos_weight)
+```
+
+The root loss is cross entropy over the root vocabulary, but only at gold chord
+change positions:
+
+```text
+root_mask[b,t] = m[b,t] and y[b,t] = 1 and r[b,t] is valid
+L_root = mean_root_mask CE(root_logits[b,t], r[b,t])
+```
+
+The quality loss follows the same rule:
+
+```text
+quality_mask[b,t] = m[b,t] and y[b,t] = 1 and q[b,t] is valid
+L_quality = mean_quality_mask CE(quality_logits[b,t], q[b,t])
+```
+
+The sparsity penalty discourages excessive chord changes:
+
+```text
+L_sparsity = mean_m p[b,t]
+```
+
+The temporal smoothness penalty discourages adjacent `1,1` change bursts:
+
+```text
+transition_mask[b,t] = m[b,t] and m[b,t-1]
+L_smoothness = mean_transition_mask p[b,t] * p[b,t-1]
+```
+
+The total loss is:
+
+```text
+L_total =
+  L_change
+  + root_weight * L_root
+  + quality_weight * L_quality
+  + alpha * L_sparsity
+  + beta * L_smoothness
+```
+
+Current starting coefficients:
+
+```text
+pos_weight = 1.5
+root_weight = 1.0
+quality_weight = 1.0
+alpha = 0.1
+beta = 0.3
+```
+
+Root and quality are intentionally not trained on hold positions. Hold slots
+only affect `L_change`, `L_sparsity`, and `L_smoothness`; this prevents the
+model from learning arbitrary root/quality classes where no chord event exists.
+
 ## Transposition Augmentation
 
 Use `transpose_canonical_leadsheets.py` to create key-augmented canonical
