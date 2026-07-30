@@ -905,6 +905,59 @@ def make_optimizer(
     return torch.optim.AdamW(parameters, lr=learning_rate, weight_decay=args.weight_decay)
 
 
+def make_tensorboard_writer(args: argparse.Namespace) -> Any | None:
+    if not args.tensorboard:
+        return None
+    try:
+        from torch.utils.tensorboard import SummaryWriter
+    except ImportError:
+        print("TensorBoard is not installed; continuing without TensorBoard logs.", file=sys.stderr)
+        return None
+    log_dir = args.tensorboard_log_dir or args.output_dir / "tb"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return SummaryWriter(log_dir=str(log_dir))
+
+
+def log_train_step_to_tensorboard(writer: Any | None, row: dict[str, Any], learning_rate: float) -> None:
+    if writer is None:
+        return
+    phase = row["phase"]
+    step = int(row["global_step"])
+    writer.add_scalar(f"{phase}/learning_rate", learning_rate, step)
+    for key, value in row.items():
+        if key.startswith("avg_") and isinstance(value, int | float):
+            writer.add_scalar(f"{phase}/train/{key.removeprefix('avg_')}", value, step)
+    writer.flush()
+
+
+def log_val_epoch_to_tensorboard(writer: Any | None, row: dict[str, Any]) -> None:
+    if writer is None:
+        return
+    phase = row["phase"]
+    step = int(row["global_step"])
+    for key, value in row.items():
+        if key in {"phase", "epoch", "global_step", "is_phase_best"}:
+            continue
+        if isinstance(value, int | float):
+            writer.add_scalar(f"{phase}/val/{key}", value, step)
+    writer.flush()
+
+
+def log_eval_scores_to_tensorboard(writer: Any | None, scores: dict[str, Any], step: int = 0) -> None:
+    if writer is None:
+        return
+    writer.add_scalar("eval/loss", scores["loss"], step)
+    for key, value in scores["change"].items():
+        writer.add_scalar(f"eval/change_{key}", value, step)
+    for key, value in scores["root_quality"].items():
+        writer.add_scalar(f"eval/root_quality_{key}", value, step)
+    for key, value in scores["label_distribution"].items():
+        writer.add_scalar(f"eval/label_distribution_{key}", value, step)
+    for key, value in scores["candidate_coverage"].items():
+        writer.add_scalar(f"eval/candidate_coverage_{key}", value, step)
+    writer.flush()
+
+
 def train_one_phase(
     phase: str,
     scope_model: QwenScope1MaskModel,
@@ -918,6 +971,7 @@ def train_one_phase(
     num_epochs: int,
     progress_path: Path,
     trainable_token_ids: list[int],
+    writer: Any | None,
 ) -> list[dict[str, Any]]:
     hooks = set_trainable_phase(
         scope_model.model,
@@ -968,6 +1022,7 @@ def train_one_phase(
                     **{f"avg_{key}": running[key] / steps for key in running},
                 }
                 append_jsonl(progress_path, row)
+                log_train_step_to_tensorboard(writer, row, learning_rate=learning_rate)
                 print(
                     f"phase={phase} epoch={epoch} step={step}/{len(train_loader)} "
                     f"avg_loss={row.get('avg_total_loss', 0.0):.4f}",
@@ -1005,6 +1060,7 @@ def train_one_phase(
             metric_row["is_phase_best"] = False
         metrics.append(metric_row)
         append_jsonl(progress_path, {"event": "val_epoch", **metric_row})
+        log_val_epoch_to_tensorboard(writer, metric_row)
         print(
             f"phase={phase} epoch={epoch} train_loss={metric_row['train_loss']:.4f} "
             f"val_change_f1={metric_row['val_change_f1']:.3f} "
@@ -1190,6 +1246,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--initialize-new-token-embeddings", action="store_true", default=True)
     parser.add_argument("--no-initialize-new-token-embeddings", dest="initialize_new_token_embeddings", action="store_false")
     parser.add_argument("--warmup-new-token-rows-only", action="store_true", default=True)
+    parser.add_argument("--tensorboard", action="store_true", default=True)
+    parser.add_argument("--no-tensorboard", dest="tensorboard", action="store_false")
+    parser.add_argument("--tensorboard-log-dir", type=Path)
     parser.add_argument("--save-warmup-model", action="store_true")
     parser.add_argument("--save-best-model", action="store_true")
     parser.add_argument("--save-final-model", action="store_true")
@@ -1254,6 +1313,12 @@ def main(argv: list[str]) -> int:
     train_loader = make_loader(train_dataset, tokenizer, args.batch_size, shuffle=True)
     val_loader = make_loader(val_dataset, tokenizer, args.eval_batch_size, shuffle=False)
     eval_loader = make_loader(eval_dataset, tokenizer, args.eval_batch_size, shuffle=False)
+    writer = make_tensorboard_writer(args)
+    tensorboard_log_dir = (
+        str(args.tensorboard_log_dir or args.output_dir / "tb")
+        if writer is not None
+        else None
+    )
 
     manifest = split_manifest(splits, args)
     metadata = {
@@ -1278,6 +1343,10 @@ def main(argv: list[str]) -> int:
         "tokenizer": tokenizer_metadata,
         "root_tokens": ROOT_TOKENS,
         "quality_tokens": QUALITY_TOKENS,
+        "tensorboard": {
+            "enabled": writer is not None,
+            "log_dir": tensorboard_log_dir,
+        },
     }
     write_json(args.output_dir / "metadata.json", metadata)
     write_json(args.output_dir / "split_manifest.json", manifest)
@@ -1299,6 +1368,7 @@ def main(argv: list[str]) -> int:
                     num_epochs=args.warmup_epochs,
                     progress_path=progress_path,
                     trainable_token_ids=tokenizer_metadata["trainable_new_token_ids"],
+                    writer=writer,
                 )
             )
             if args.save_warmup_model:
@@ -1318,6 +1388,7 @@ def main(argv: list[str]) -> int:
                     num_epochs=args.epochs,
                     progress_path=progress_path,
                     trainable_token_ids=tokenizer_metadata["trainable_new_token_ids"],
+                    writer=writer,
                 )
             )
         write_jsonl(args.output_dir / "train_metrics.jsonl", train_metrics)
@@ -1325,9 +1396,12 @@ def main(argv: list[str]) -> int:
             save_model(model, tokenizer, args.output_dir / "final_model")
 
     scores, rows = evaluate(scope_model, eval_loader, loss_fn, args.threshold, device)
+    log_eval_scores_to_tensorboard(writer, scores)
     write_json(args.output_dir / "scores.json", scores)
     write_jsonl(args.output_dir / "predictions.jsonl", rows)
     write_report(args.output_dir / "REPORT.md", metadata, scores, rows)
+    if writer is not None:
+        writer.close()
     print(
         f"done mode={args.mode} eval_split={args.eval_split} "
         f"change_f1={scores['change']['f1']:.3f} "

@@ -264,3 +264,24 @@ model.resize_token_embeddings(len(tokenizer))
 
 For the No-LoRA 1.5B route, the final artifact should be a complete fine-tuned
 model directory that includes this exact tokenizer.
+
+## TensorBoard Monitoring
+
+`train_qwen25_scope1_chord_masks.py` writes TensorBoard events by default under
+the run directory:
+
+```text
+<output-dir>/tb/
+```
+
+Logged curves include:
+
+- training loss terms: `change_loss`, `root_loss`, `quality_loss`,
+  `sparsity_loss`, `smoothness_loss`, and `total_loss`
+- phase learning rate
+- validation loss and validation precision/recall/F1 metrics
+- final evaluation metrics for change timing, root/quality accuracy, label
+  distribution, and candidate coverage
+
+Disable TensorBoard with `--no-tensorboard`, or override the event directory
+with `--tensorboard-log-dir`.
