@@ -70,6 +70,24 @@ src/realbook_ingestion/scripts/openbook_mako_to_canonical.py
 
 The script has no third-party Python dependencies.
 
+## Repository Data Snapshot
+
+The checked-in OpenBook ingestion snapshot lives under:
+
+```text
+data/openbook/
+  raw/        original OpenBook .ly.mako files
+  canonical/ generated lead_sheet.v0 JSON files
+```
+
+Regenerate the canonical snapshot whenever `raw/` changes:
+
+```bash
+python3 -B src/realbook_ingestion/scripts/openbook_mako_to_canonical.py \
+  data/openbook/raw \
+  -o data/openbook/canonical
+```
+
 ## Single-File Conversion
 
 ```bash
