@@ -860,8 +860,55 @@ def output_path_for(source: Path, output: Path | None, batch: bool) -> Path | No
     return output
 
 
+COMPACT_STREAM_KEYS = {"harmony_stream", "melody_stream"}
+
+
+def render_stream_array(events: list[object], indent: int) -> str:
+    if not events:
+        return "[]"
+    line_prefix = " " * (indent + 2)
+    close_prefix = " " * indent
+    lines = ["["]
+    for index, event in enumerate(events):
+        comma = "," if index < len(events) - 1 else ""
+        lines.append(f"{line_prefix}{json.dumps(event, ensure_ascii=False)}{comma}")
+    lines.append(f"{close_prefix}]")
+    return "\n".join(lines)
+
+
+def render_json(data: object, indent: int = 0, parent_key: str | None = None) -> str:
+    if isinstance(data, dict):
+        if not data:
+            return "{}"
+        item_prefix = " " * (indent + 2)
+        close_prefix = " " * indent
+        lines = ["{"]
+        items = list(data.items())
+        for index, (key, value) in enumerate(items):
+            comma = "," if index < len(items) - 1 else ""
+            rendered_value = render_json(value, indent + 2, key)
+            rendered_key = json.dumps(key, ensure_ascii=False)
+            lines.append(f"{item_prefix}{rendered_key}: {rendered_value}{comma}")
+        lines.append(f"{close_prefix}}}")
+        return "\n".join(lines)
+    if isinstance(data, list):
+        if parent_key in COMPACT_STREAM_KEYS:
+            return render_stream_array(data, indent)
+        if not data:
+            return "[]"
+        item_prefix = " " * (indent + 2)
+        close_prefix = " " * indent
+        lines = ["["]
+        for index, value in enumerate(data):
+            comma = "," if index < len(data) - 1 else ""
+            lines.append(f"{item_prefix}{render_json(value, indent + 2)}{comma}")
+        lines.append(f"{close_prefix}]")
+        return "\n".join(lines)
+    return json.dumps(data, ensure_ascii=False)
+
+
 def write_json(data: dict[str, object], path: Path | None) -> None:
-    rendered = json.dumps(data, ensure_ascii=False, indent=2)
+    rendered = render_json(data)
     if path is None:
         print(rendered)
         return

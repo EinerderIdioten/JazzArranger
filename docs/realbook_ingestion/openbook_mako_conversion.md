@@ -62,6 +62,11 @@ The output follows [Canonical Lead-Sheet Storage](canonical_storage.md):
 }
 ```
 
+Generated JSON keeps each `harmony_stream` and `melody_stream` event on a
+single line, while preserving normal pretty-printing for the surrounding
+metadata. This makes the files easier to scan, diff, and feed into model
+evaluation prompts.
+
 ## Script Location
 
 ```text

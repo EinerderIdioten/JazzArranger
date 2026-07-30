@@ -43,6 +43,10 @@ harmony_stream = [bar, beat, symbol, duration_beats]
 melody_stream = [bar, beat, pitch, duration_beats, tag]
 ```
 
+Stream events are written as compact single-line arrays inside otherwise
+pretty-printed JSON, so repeated musical events remain readable in diffs and
+model prompts.
+
 Generated files are marked `needs_review`. The converter preserves objective
 lead-sheet events, but a human should still review melody tags, repeats, and
 musical details before using a tune as a benchmark case.
