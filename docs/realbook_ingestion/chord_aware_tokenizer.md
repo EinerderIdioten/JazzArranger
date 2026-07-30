@@ -109,6 +109,40 @@ generalization. Transposition augmentation across 12 keys should be used before
 serious training; it turns the same tune-level corpus into roughly twelve
 times as many root/quality events while preserving functional patterns.
 
+## Transposition Augmentation
+
+Use `transpose_canonical_leadsheets.py` to create key-augmented canonical
+copies. The script does not change the source files. It mechanically transposes:
+
+- `context.key`
+- chord roots and slash basses in `harmony_stream`
+- melody pitches in `melody_stream`
+
+It preserves bar, beat, duration, tags, meter, and raw stream shape.
+
+Create all 12 transpositions for the OpenBook canonical snapshot:
+
+```bash
+python src/realbook_ingestion/scripts/transpose_canonical_leadsheets.py \
+  --input data/openbook/canonical \
+  --all-keys \
+  --output-dir data/openbook/canonical_transposed_12key
+```
+
+Transpose one file to a target key:
+
+```bash
+python src/realbook_ingestion/scripts/transpose_canonical_leadsheets.py \
+  --input data/openbook/canonical/autumn_leaves.canonical.json \
+  --target-key "C minor" \
+  --output-dir /tmp/autumn_leaves_transposed
+```
+
+Each generated file records transposition metadata in `context.transposition`.
+For training splits, split by original tune identity before or during
+augmentation so transposed copies of one tune do not leak across train/test
+boundaries.
+
 ## Script
 
 Build only the manifest and parsed event audit:
