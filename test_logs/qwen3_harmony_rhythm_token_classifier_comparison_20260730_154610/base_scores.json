@@ -1,0 +1,95 @@
+{
+  "num_examples": 188,
+  "strict_counts_all_samples": {
+    "tp": 1013,
+    "fp": 2196,
+    "fn": 0,
+    "tn": 0
+  },
+  "strict_all_samples": {
+    "precision": 0.31567466500467434,
+    "recall": 1.0,
+    "f1": 0.47986736144007575,
+    "accuracy": 0.31567466500467434
+  },
+  "tolerant_0_5_beat_counts_all_samples": {
+    "tp": 1013,
+    "fp": 2196,
+    "fn": 0
+  },
+  "tolerant_0_5_beat_all_samples": {
+    "precision": 0.31567466500467434,
+    "recall": 1.0,
+    "f1": 0.47986736144007575,
+    "accuracy": 0.31567466500467434
+  },
+  "structural_alignment": {
+    "passed": 188,
+    "failed": 0,
+    "pass_rate": 1.0
+  },
+  "label_distribution": {
+    "gold_positive": 1013,
+    "pred_positive": 3209,
+    "total_candidates": 3209,
+    "gold_positive_rate": 0.31567466500467434,
+    "pred_positive_rate": 1.0
+  },
+  "candidate_coverage": {
+    "total_harmony_changes": 1021,
+    "covered_harmony_changes": 1013,
+    "uncovered_harmony_changes": 8,
+    "coverage_rate": 0.9921645445641528,
+    "uncovered_examples": [
+      {
+        "case_id": "what_a_diffrence_a_day_made.canonical:bars_5_8",
+        "bar": 5,
+        "beat": 2,
+        "symbol": "Abdim7"
+      },
+      {
+        "case_id": "what_a_diffrence_a_day_made.canonical:bars_5_8",
+        "bar": 7,
+        "beat": 2,
+        "symbol": "C7#5"
+      },
+      {
+        "case_id": "a_cup_of_coffee_a_sandwich_and_you.canonical:bars_37_40",
+        "bar": 37,
+        "beat": 2,
+        "symbol": "F7"
+      },
+      {
+        "case_id": "a_cup_of_coffee_a_sandwich_and_you.canonical:bars_61_64",
+        "bar": 61,
+        "beat": 2,
+        "symbol": "F7"
+      },
+      {
+        "case_id": "a_cup_of_coffee_a_sandwich_and_you.canonical:bars_17_20",
+        "bar": 20,
+        "beat": 2,
+        "symbol": "G7"
+      },
+      {
+        "case_id": "they_all_laughed.canonical:bars_1_4",
+        "bar": 4,
+        "beat": 2,
+        "symbol": "Bb7"
+      },
+      {
+        "case_id": "waltz_for_debby.canonical:bars_21_24",
+        "bar": 22,
+        "beat": 3,
+        "symbol": "C7"
+      },
+      {
+        "case_id": "a_cup_of_coffee_a_sandwich_and_you.canonical:bars_45_48",
+        "bar": 45,
+        "beat": 2,
+        "symbol": "F7"
+      }
+    ]
+  },
+  "loss": 2.2000999824797853
+}
