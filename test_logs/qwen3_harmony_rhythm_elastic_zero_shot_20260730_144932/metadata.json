@@ -1,0 +1,38 @@
+{
+  "run_type": "zero_shot_pre_finetune_harmony_rhythm_baseline",
+  "created_at_utc": "2026-07-30T06:49:41.821967+00:00",
+  "completed_at_utc": "2026-07-30T06:50:41.233154+00:00",
+  "duration_seconds": 59.411187,
+  "canonical_dir": "data/openbook/canonical",
+  "model_path": "/root/autodl-tmp/models/Qwen3-8B",
+  "window_bars": 4,
+  "stride_bars": 4,
+  "candidate_policy": {
+    "name": "elastic_melody_backbone_v1",
+    "melody_condition": "candidate at every melody onset or rest start",
+    "backbone_condition": "candidate at beat 1 and beat 3, plus beat 4 for 4/4 and 2/2",
+    "row_schema": [
+      "bar",
+      "beat",
+      "type",
+      "pitch",
+      "duration_beats",
+      "mask"
+    ],
+    "types": {
+      "N": "new pitched melody onset",
+      "R": "rest onset",
+      "C": "continuation backbone checkpoint"
+    }
+  },
+  "seed": 20260730,
+  "max_examples": 40,
+  "max_new_tokens": 160,
+  "load_in_4bit": false,
+  "prompt_policy": {
+    "few_shot": false,
+    "include_chord_symbols": false,
+    "include_title_in_prompt": false,
+    "output_contract": "strict JSON array of 0/1 labels matching input candidate count"
+  }
+}

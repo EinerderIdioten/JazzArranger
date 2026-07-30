@@ -1,0 +1,76 @@
+{
+  "num_examples": 40,
+  "strict_counts_all_samples": {
+    "tp": 96,
+    "fp": 249,
+    "fn": 122,
+    "tn": 301
+  },
+  "strict_all_samples": {
+    "precision": 0.2782608695652174,
+    "recall": 0.44036697247706424,
+    "f1": 0.3410301953818828,
+    "accuracy": 0.5169270833333334
+  },
+  "tolerant_0_5_beat_counts_all_samples": {
+    "tp": 118,
+    "fp": 227,
+    "fn": 100
+  },
+  "tolerant_0_5_beat_all_samples": {
+    "precision": 0.34202898550724636,
+    "recall": 0.5412844036697247,
+    "f1": 0.4191829484902309,
+    "accuracy": 0.2651685393258427
+  },
+  "format": {
+    "passed": 33,
+    "failed": 7,
+    "pass_rate": 0.825
+  },
+  "label_distribution": {
+    "gold_positive": 218,
+    "pred_positive": 345,
+    "total_candidates": 768,
+    "gold_positive_rate": 0.2838541666666667,
+    "pred_positive_rate": 0.44921875
+  },
+  "candidate_coverage": {
+    "total_harmony_changes": 223,
+    "covered_harmony_changes": 218,
+    "uncovered_harmony_changes": 5,
+    "coverage_rate": 0.9775784753363229,
+    "uncovered_examples": [
+      {
+        "case_id": "dont_get_around_much_anymore.canonical:bars_1_4",
+        "bar": 2,
+        "beat": 2,
+        "symbol": "C"
+      },
+      {
+        "case_id": "dont_get_around_much_anymore.canonical:bars_1_4",
+        "bar": 2,
+        "beat": 4.5,
+        "symbol": "C/E"
+      },
+      {
+        "case_id": "dont_get_around_much_anymore.canonical:bars_1_4",
+        "bar": 4,
+        "beat": 2,
+        "symbol": "A"
+      },
+      {
+        "case_id": "dont_get_around_much_anymore.canonical:bars_1_4",
+        "bar": 4,
+        "beat": 4.5,
+        "symbol": "A7/C#"
+      },
+      {
+        "case_id": "a_cup_of_coffee_a_sandwich_and_you.canonical:bars_61_64",
+        "bar": 61,
+        "beat": 2,
+        "symbol": "F7"
+      }
+    ]
+  }
+}
