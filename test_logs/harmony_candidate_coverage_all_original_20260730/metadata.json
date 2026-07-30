@@ -1,0 +1,36 @@
+{
+  "canonical_dir": "/Users/4paradigm/Documents/repos/jazzarranger/data/openbook/canonical",
+  "key_filter": "ALL",
+  "candidate_policy": {
+    "name": "elastic_melody_rest_onset_plus_meter_backbone",
+    "implementation": "run_qwen3_harmony_rhythm_baseline.build_candidate_grid",
+    "rules": [
+      "melody note onset creates a candidate",
+      "rest onset creates a candidate",
+      "meter-specific backbone beats create continuation candidates when no onset exists"
+    ],
+    "backbone_beats": {
+      "4/4": [
+        1.0,
+        3.0,
+        4.0
+      ],
+      "2/2": [
+        1.0,
+        3.0,
+        4.0
+      ],
+      "3/4": [
+        1.0
+      ],
+      "5/4": [
+        1.0,
+        3.0,
+        4.0
+      ],
+      "6/8": [
+        1.0
+      ]
+    }
+  }
+}
