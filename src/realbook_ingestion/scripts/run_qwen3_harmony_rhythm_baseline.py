@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
-"""Run a zero-shot Qwen3 baseline for harmony-rhythm slot prediction."""
+"""Run a zero-shot Qwen3 baseline for harmony-rhythm candidate prediction."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
 import random
-import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-
-SLOT_BEATS = 0.5
 
 
 @dataclass(frozen=True)
@@ -26,9 +21,11 @@ class WindowCase:
     context: dict[str, Any]
     bar_start: int
     bar_end: int
-    slots_per_bar: int
-    slots: list[dict[str, Any]]
+    candidates: list[dict[str, Any]]
     labels: list[int]
+    total_harmony_changes: int
+    covered_harmony_changes: int
+    uncovered_harmony_events: list[dict[str, Any]]
 
 
 def meter_beats(meter: str) -> float:
@@ -36,111 +33,147 @@ def meter_beats(meter: str) -> float:
     return numerator * 4 / denominator
 
 
-def beat_to_slot(beat: float) -> int:
-    return round((beat - 1) / SLOT_BEATS)
+def normalize_beat(value: float) -> int | float:
+    rounded = round(float(value), 6)
+    return int(rounded) if float(rounded).is_integer() else rounded
 
 
-def pitch_to_midi(pitch: str | None) -> int | None:
-    if not pitch or pitch == "R":
-        return None
-    match = re.fullmatch(r"([A-G])([#b]*)(-?\d+)", pitch)
-    if not match:
-        return None
-    base = {
-        "C": 0,
-        "D": 2,
-        "E": 4,
-        "F": 5,
-        "G": 7,
-        "A": 9,
-        "B": 11,
-    }[match.group(1)]
-    accidental = match.group(2).count("#") - match.group(2).count("b")
-    octave = int(match.group(3))
-    return 12 * (octave + 1) + base + accidental
+def time_key(bar: int, beat: float) -> tuple[int, float]:
+    return int(bar), round(float(beat), 6)
 
 
-def pitch_change_label(pitch: str, previous_midi: int | None) -> tuple[str, int | None]:
-    midi = pitch_to_midi(pitch)
-    if pitch == "R":
-        return "rest", previous_midi
-    if midi is None:
-        return "same", previous_midi
-    if previous_midi is None:
-        return "same", midi
-    if midi > previous_midi:
-        return "up", midi
-    if midi < previous_midi:
-        return "down", midi
-    return "same", midi
+def absolute_position(bar: int, beat: float, beats_per_bar: float) -> float:
+    return (int(bar) - 1) * beats_per_bar + (float(beat) - 1)
 
 
-def beat_strength(beat: float, beats_per_bar: float) -> str:
-    if math.isclose(beat, 1.0):
-        return "强拍"
-    if beats_per_bar >= 4 and math.isclose(beat, 3.0):
-        return "次强拍"
-    if float(beat).is_integer():
-        return "正拍"
-    return "弱拍"
+def backbone_beats_for_meter(meter: str) -> list[float]:
+    if meter in {"4/4", "2/2"}:
+        return [1.0, 3.0, 4.0]
+    if meter == "3/4":
+        return [1.0]
+    beats = meter_beats(meter)
+    if beats >= 4:
+        return [1.0, 3.0, 4.0]
+    return [1.0]
 
 
-def build_grid(
+def active_pitch_at(
+    melody_events: list[dict[str, Any]],
+    position: float,
+) -> str:
+    active = [
+        event
+        for event in melody_events
+        if event["absolute_start"] <= position < event["absolute_end"]
+    ]
+    if not active:
+        return "R"
+    return str(max(active, key=lambda event: event["absolute_start"])["pitch"])
+
+
+def build_candidate_grid(
     context: dict[str, Any],
     melody_stream: list[list[Any]],
     harmony_stream: list[list[Any]],
     bar_start: int,
     window_bars: int,
-) -> tuple[list[dict[str, Any]], list[int], int]:
+) -> tuple[list[dict[str, Any]], list[int], int, int, list[dict[str, Any]]]:
     beats_per_bar = meter_beats(context["meter"])
-    slots_per_bar = int(round(beats_per_bar / SLOT_BEATS))
     bar_end = bar_start + window_bars - 1
-    total_slots = window_bars * slots_per_bar
-    slots: list[dict[str, Any]] = []
-    for index in range(total_slots):
-        bar = bar_start + index // slots_per_bar
-        slot_in_bar = index % slots_per_bar
-        beat = 1 + slot_in_bar * SLOT_BEATS
-        slots.append(
-            {
-                "step": index + 1,
-                "bar": bar,
-                "beat": int(beat) if float(beat).is_integer() else beat,
-                "bar_pos": slot_in_bar + 1,
-                "beat_strength": beat_strength(beat, beats_per_bar),
-                "is_note_onset": 0,
-                "pitch": None,
-                "note_duration": 0,
-                "pitch_change": "silence",
-            }
-        )
-
-    previous_midi: int | None = None
+    window_start = absolute_position(bar_start, 1.0, beats_per_bar)
+    window_end = absolute_position(bar_end, beats_per_bar, beats_per_bar) + 1
+    melody_events: list[dict[str, Any]] = []
     for bar, beat, pitch, duration, *_rest in melody_stream:
-        if bar < bar_start or bar > bar_end:
+        if int(bar) < 1:
             continue
-        slot_index = (bar - bar_start) * slots_per_bar + beat_to_slot(float(beat))
-        if not 0 <= slot_index < total_slots:
+        start = absolute_position(int(bar), float(beat), beats_per_bar)
+        end = start + float(duration)
+        if end <= window_start or start >= window_end:
             continue
-        change, previous_midi = pitch_change_label(str(pitch), previous_midi)
-        slots[slot_index].update(
+        melody_events.append(
             {
-                "is_note_onset": 1,
+                "bar": int(bar),
+                "beat": normalize_beat(float(beat)),
                 "pitch": pitch,
                 "note_duration": duration,
-                "pitch_change": change,
+                "absolute_start": start,
+                "absolute_end": end,
             }
         )
 
-    labels = [0 for _ in range(total_slots)]
-    for bar, beat, _symbol, _duration in harmony_stream:
+    candidate_by_key: dict[tuple[int, float], dict[str, Any]] = {}
+    for event in melody_events:
+        bar = event["bar"]
+        beat = float(event["beat"])
         if bar < bar_start or bar > bar_end:
             continue
-        slot_index = (bar - bar_start) * slots_per_bar + beat_to_slot(float(beat))
-        if 0 <= slot_index < total_slots:
-            labels[slot_index] = 1
+        pitch = str(event["pitch"])
+        candidate_by_key[time_key(bar, beat)] = {
+            "bar": bar,
+            "beat": normalize_beat(beat),
+            "type": "R" if pitch == "R" else "N",
+            "pitch": pitch,
+            "note_duration": event["note_duration"],
+            "absolute_position": event["absolute_start"],
+        }
 
-    return slots, labels, slots_per_bar
+    for bar in range(bar_start, bar_end + 1):
+        for beat in backbone_beats_for_meter(context["meter"]):
+            if beat > beats_per_bar:
+                continue
+            key = time_key(bar, beat)
+            if key in candidate_by_key:
+                continue
+            position = absolute_position(bar, beat, beats_per_bar)
+            candidate_by_key[key] = {
+                "bar": bar,
+                "beat": normalize_beat(beat),
+                "type": "C",
+                "pitch": active_pitch_at(melody_events, position),
+                "note_duration": 0,
+                "absolute_position": position,
+            }
+
+    candidates = sorted(candidate_by_key.values(), key=lambda item: item["absolute_position"])
+    for index, candidate in enumerate(candidates, start=1):
+        candidate["step"] = index
+        candidate["row"] = [
+            candidate["bar"],
+            candidate["beat"],
+            candidate["type"],
+            candidate["pitch"],
+            candidate["note_duration"],
+            "M",
+        ]
+
+    labels = [0 for _ in candidates]
+    candidate_index = {
+        time_key(candidate["bar"], float(candidate["beat"])): index
+        for index, candidate in enumerate(candidates)
+    }
+    total_harmony_changes = 0
+    covered_harmony_changes = 0
+    uncovered_harmony_events: list[dict[str, Any]] = []
+    for bar, beat, symbol, _duration in harmony_stream:
+        bar = int(bar)
+        beat = float(beat)
+        if bar < bar_start or bar > bar_end:
+            continue
+        total_harmony_changes += 1
+        index = candidate_index.get(time_key(bar, beat))
+        if index is None:
+            uncovered_harmony_events.append(
+                {
+                    "bar": bar,
+                    "beat": normalize_beat(beat),
+                    "symbol": symbol,
+                }
+            )
+            continue
+        labels[index] = 1
+        covered_harmony_changes += 1
+
+    return candidates, labels, total_harmony_changes, covered_harmony_changes, uncovered_harmony_events
 
 
 def max_bar(data: dict[str, Any]) -> int:
@@ -168,14 +201,14 @@ def load_cases(
         if tune_max_bar < window_bars:
             continue
         for bar_start in range(1, tune_max_bar - window_bars + 2, stride_bars):
-            slots, labels, slots_per_bar = build_grid(
+            candidates_grid, labels, total_changes, covered_changes, uncovered_events = build_candidate_grid(
                 context,
                 data["melody_stream"],
                 data["harmony_stream"],
                 bar_start,
                 window_bars,
             )
-            if not any(slot["is_note_onset"] for slot in slots):
+            if not any(candidate["type"] in {"N", "R"} for candidate in candidates_grid):
                 continue
             case_id = f"{path.stem}:bars_{bar_start}_{bar_start + window_bars - 1}"
             candidates.append(
@@ -186,9 +219,11 @@ def load_cases(
                     context=context,
                     bar_start=bar_start,
                     bar_end=bar_start + window_bars - 1,
-                    slots_per_bar=slots_per_bar,
-                    slots=slots,
+                    candidates=candidates_grid,
                     labels=labels,
+                    total_harmony_changes=total_changes,
+                    covered_harmony_changes=covered_changes,
+                    uncovered_harmony_events=uncovered_events,
                 )
             )
     rng = random.Random(seed)
@@ -198,39 +233,22 @@ def load_cases(
     return candidates
 
 
-def render_slot(slot: dict[str, Any]) -> str:
-    prefix = (
-        f"[Step {slot['step']} (小节{slot['bar']}-拍{slot['beat']}, "
-        f"小节位置{slot['bar_pos']})]: {slot['beat_strength']}, "
-    )
-    if slot["is_note_onset"]:
-        return (
-            f"{prefix}有新音符 {slot['pitch']}, "
-            f"时值 {slot['note_duration']} 拍, 音高变化 {slot['pitch_change']}"
-        )
-    return f"{prefix}延续上个音符或无新音符"
-
-
 def render_messages(case: WindowCase) -> list[dict[str, str]]:
     n_steps = len(case.labels)
-    context = case.context
-    step_lines = "\n".join(render_slot(slot) for slot in case.slots)
+    rows = [candidate["row"] for candidate in case.candidates]
     system = (
-        "你是爵士 Lead Sheet 和声节奏标注器。"
-        "任务是判断每个 0.5 拍时间格是否应该更换新和弦。"
-        "只能输出合法 JSON 数组。数组长度必须严格等于输入 Step 数。"
-        "数组元素只能是 0 或 1：1=该 Step 换新和弦，0=延续前一个和弦。"
-        "不要输出解释、Markdown、文字或和弦名。"
+        "你是一个爵士乐编曲器。"
+        "输入是一个二维数组，每行代表一个旋律时间检查点 "
+        "[小节, 拍数, 类型, 音高, 时值, \"M\"]。"
+        "请直接输出一个相同长度的一维 JSON 数组，用 1 或 0 替换 \"M\"。"
+        "1 代表该检查点换新和弦，0 代表不换。"
+        "不要输出任何多余的解释。"
     )
     user = (
-        f"调性: {context.get('key', 'unknown')} | "
-        f"拍号: {context.get('meter', 'unknown')} | "
-        f"风格: {context.get('style', 'unknown')}\n"
-        f"范围: 小节 {case.bar_start}-{case.bar_end}\n"
-        "每个 Step 代表 0.5 拍。输入没有和弦名，只包含旋律与节拍骨架。\n\n"
-        "旋律时间网格流：\n"
-        f"{step_lines}\n\n"
-        "请预测每一步是否需要更换新和弦。\n"
+        "类型说明：N=新音符开始，R=休止开始，C=骨架延续检查点。\n"
+        f"输入长度: {n_steps}\n"
+        "输入:\n"
+        f"{json.dumps(rows, ensure_ascii=False)}\n"
         f"仅输出包含 {n_steps} 个数字的 JSON 数组。"
     )
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
@@ -299,20 +317,25 @@ def strict_counts(labels: list[int], predictions: list[int]) -> dict[str, int]:
     return {"tp": tp, "fp": fp, "fn": fn, "tn": tn}
 
 
-def tolerant_counts(labels: list[int], predictions: list[int], tolerance_slots: int) -> dict[str, int]:
-    gold_positions = [index for index, value in enumerate(labels) if value == 1]
-    pred_positions = [index for index, value in enumerate(predictions) if value == 1]
+def tolerant_counts(
+    labels: list[int],
+    predictions: list[int],
+    positions: list[float],
+    tolerance_beats: float,
+) -> dict[str, int]:
+    gold_positions = [positions[index] for index, value in enumerate(labels) if value == 1]
+    pred_positions = [positions[index] for index, value in enumerate(predictions) if value == 1]
     used_gold: set[int] = set()
     tp = 0
     for pred in pred_positions:
         matches = [
-            gold
-            for gold in gold_positions
-            if gold not in used_gold and abs(gold - pred) <= tolerance_slots
+            gold_index
+            for gold_index, gold in enumerate(gold_positions)
+            if gold_index not in used_gold and abs(gold - pred) <= tolerance_beats
         ]
         if matches:
-            gold = min(matches, key=lambda item: abs(item - pred))
-            used_gold.add(gold)
+            gold_index = min(matches, key=lambda item: abs(gold_positions[item] - pred))
+            used_gold.add(gold_index)
             tp += 1
     fp = len(pred_positions) - tp
     fn = len(gold_positions) - tp
@@ -445,12 +468,13 @@ def write_report(
         ),
         reverse=True,
     )[:8]
+    coverage = scores["candidate_coverage"]
     lines = [
         "# Qwen3 Harmony-Rhythm Baseline",
         "",
         "## Summary",
         "",
-        "This is a zero-shot, pre-finetuning baseline for predicting chord-change timing from melody-grid prompts. The prompt does not include chord names or gold harmony labels.",
+        "This is a zero-shot, pre-finetuning baseline for predicting chord-change timing from elastic melody-checkpoint prompts. The prompt does not include chord names or gold harmony labels.",
         "",
         "| Item | Value |",
         "| --- | --- |",
@@ -458,30 +482,34 @@ def write_report(
         f"| Canonical source | `{metadata['canonical_dir']}` |",
         f"| Examples | `{scores['num_examples']}` |",
         f"| Window size | `{metadata['window_bars']} bars` |",
-        f"| Slot size | `{metadata['slot_beats']} beat` |",
+        f"| Candidate policy | `{metadata['candidate_policy']['name']}` |",
         f"| Sampling seed | `{metadata['seed']}` |",
         f"| Format pass rate | `{format_pass_pct:.1f}%` |",
+        f"| Candidate coverage | `{coverage['coverage_rate']:.1%}` |",
         "",
         "## Metrics",
         "",
-        "Primary metrics treat chord-change positions as label `1` in a binary sequence. Invalid model outputs are scored as all-zero predictions in `all_samples` metrics, so format failures are penalized.",
+        "Primary metrics treat chord-change positions as label `1` over generated candidate checkpoints. Invalid model outputs are scored as all-zero predictions in `all_samples` metrics, so format failures are penalized.",
         "",
         "| Metric | Precision | Recall | F1 | Accuracy |",
         "| --- | ---: | ---: | ---: | ---: |",
-        f"| Strict slot match | {strict['precision']:.3f} | {strict['recall']:.3f} | {strict['f1']:.3f} | {strict['accuracy']:.3f} |",
+        f"| Strict candidate match | {strict['precision']:.3f} | {strict['recall']:.3f} | {strict['f1']:.3f} | {strict['accuracy']:.3f} |",
         f"| ±0.5 beat tolerant | {tolerant['precision']:.3f} | {tolerant['recall']:.3f} | {tolerant['f1']:.3f} | n/a |",
         "",
         "## Counts",
         "",
         "| Count | Value |",
         "| --- | ---: |",
-        f"| Gold chord-change slots | {scores['label_distribution']['gold_positive']} |",
-        f"| Predicted chord-change slots | {scores['label_distribution']['pred_positive']} |",
-        f"| Total slots | {scores['label_distribution']['total_slots']} |",
+        f"| Gold chord-change candidates | {scores['label_distribution']['gold_positive']} |",
+        f"| Predicted chord-change candidates | {scores['label_distribution']['pred_positive']} |",
+        f"| Total candidates | {scores['label_distribution']['total_candidates']} |",
         f"| Strict TP | {scores['strict_counts_all_samples']['tp']} |",
         f"| Strict FP | {scores['strict_counts_all_samples']['fp']} |",
         f"| Strict FN | {scores['strict_counts_all_samples']['fn']} |",
         f"| Strict TN | {scores['strict_counts_all_samples']['tn']} |",
+        f"| Harmony changes in windows | {coverage['total_harmony_changes']} |",
+        f"| Harmony changes covered by candidates | {coverage['covered_harmony_changes']} |",
+        f"| Harmony changes uncovered by candidates | {coverage['uncovered_harmony_changes']} |",
         "",
         "## Format Failures",
         "",
@@ -554,7 +582,10 @@ def main(argv: list[str]) -> int:
     format_passed = 0
     total_pred_positive = 0
     total_gold_positive = 0
-    total_slots = 0
+    total_candidates = 0
+    total_harmony_changes = 0
+    covered_harmony_changes = 0
+    uncovered_harmony_events: list[dict[str, Any]] = []
     started_at = datetime.now(timezone.utc)
     for index, case in enumerate(cases, start=1):
         messages = render_messages(case)
@@ -566,12 +597,22 @@ def main(argv: list[str]) -> int:
             scored_prediction = prediction
             format_passed += 1
         strict = strict_counts(case.labels, scored_prediction)
-        tolerant = tolerant_counts(case.labels, scored_prediction, tolerance_slots=1)
+        positions = [candidate["absolute_position"] for candidate in case.candidates]
+        tolerant = tolerant_counts(case.labels, scored_prediction, positions, tolerance_beats=0.5)
         strict_items.append(strict)
         tolerant_items.append(tolerant)
         total_pred_positive += sum(scored_prediction)
         total_gold_positive += sum(case.labels)
-        total_slots += len(case.labels)
+        total_candidates += len(case.labels)
+        total_harmony_changes += case.total_harmony_changes
+        covered_harmony_changes += case.covered_harmony_changes
+        uncovered_harmony_events.extend(
+            {
+                "case_id": case.case_id,
+                **event,
+            }
+            for event in case.uncovered_harmony_events
+        )
         row = {
             "case_index": index,
             "case_id": case.case_id,
@@ -581,15 +622,18 @@ def main(argv: list[str]) -> int:
             "key": case.context.get("key"),
             "bar_start": case.bar_start,
             "bar_end": case.bar_end,
-            "slots_per_bar": case.slots_per_bar,
-            "num_steps": len(case.labels),
+            "num_candidates": len(case.labels),
             "format_status": format_status,
+            "input_rows": [candidate["row"] for candidate in case.candidates],
             "gold_labels": case.labels,
             "predicted_labels": scored_prediction,
             "gold_change_steps": label_positions(case.labels),
             "predicted_change_steps": label_positions(scored_prediction),
             "strict_counts": strict,
             "tolerant_0_5_beat_counts": tolerant,
+            "total_harmony_changes": case.total_harmony_changes,
+            "covered_harmony_changes": case.covered_harmony_changes,
+            "uncovered_harmony_events": case.uncovered_harmony_events,
             "raw_response": raw_response,
         }
         rows.append(row)
@@ -612,7 +656,17 @@ def main(argv: list[str]) -> int:
         "model_path": args.model_path.as_posix(),
         "window_bars": args.window_bars,
         "stride_bars": args.stride_bars,
-        "slot_beats": SLOT_BEATS,
+        "candidate_policy": {
+            "name": "elastic_melody_backbone_v1",
+            "melody_condition": "candidate at every melody onset or rest start",
+            "backbone_condition": "candidate at beat 1 and beat 3, plus beat 4 for 4/4 and 2/2",
+            "row_schema": ["bar", "beat", "type", "pitch", "duration_beats", "mask"],
+            "types": {
+                "N": "new pitched melody onset",
+                "R": "rest onset",
+                "C": "continuation backbone checkpoint",
+            },
+        },
         "seed": args.seed,
         "max_examples": args.max_examples,
         "max_new_tokens": args.max_new_tokens,
@@ -621,7 +675,7 @@ def main(argv: list[str]) -> int:
             "few_shot": False,
             "include_chord_symbols": False,
             "include_title_in_prompt": False,
-            "output_contract": "strict JSON array of 0/1 labels matching input step count",
+            "output_contract": "strict JSON array of 0/1 labels matching input candidate count",
         },
     }
     scores = {
@@ -638,9 +692,16 @@ def main(argv: list[str]) -> int:
         "label_distribution": {
             "gold_positive": total_gold_positive,
             "pred_positive": total_pred_positive,
-            "total_slots": total_slots,
-            "gold_positive_rate": total_gold_positive / total_slots if total_slots else 0.0,
-            "pred_positive_rate": total_pred_positive / total_slots if total_slots else 0.0,
+            "total_candidates": total_candidates,
+            "gold_positive_rate": total_gold_positive / total_candidates if total_candidates else 0.0,
+            "pred_positive_rate": total_pred_positive / total_candidates if total_candidates else 0.0,
+        },
+        "candidate_coverage": {
+            "total_harmony_changes": total_harmony_changes,
+            "covered_harmony_changes": covered_harmony_changes,
+            "uncovered_harmony_changes": total_harmony_changes - covered_harmony_changes,
+            "coverage_rate": covered_harmony_changes / total_harmony_changes if total_harmony_changes else 0.0,
+            "uncovered_examples": uncovered_harmony_events[:30],
         },
     }
     write_json(args.output_dir / "metadata.json", metadata)

@@ -41,6 +41,7 @@ Out of scope for this documentation pass:
 - [Canonical Lead-Sheet Storage](canonical_storage.md): source-of-truth JSON structure for storage, validation, indexing, and deterministic scoring.
 - [Model Temporal Rendering](model_temporal_rendering.md): conversion from canonical storage into event grids, compact text, prompt views, and RAG chunks for model consumption.
 - [OpenBook Mako Conversion](openbook_mako_conversion.md): static converter route from OpenBook `.ly.mako` symbolic lead sheets into canonical lead-sheet JSON.
+- [Harmony-Rhythm Training Strategy](harmony_rhythm_training_strategy.md): elastic candidate rendering, prompt format, and scoring for training chord-change timing.
 
 ## Design rule
 
