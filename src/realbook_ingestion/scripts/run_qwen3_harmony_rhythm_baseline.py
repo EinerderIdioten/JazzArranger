@@ -372,7 +372,7 @@ def generate_response(
             tokenize=True,
             return_tensors="pt",
         )
-    if isinstance(inputs, dict):
+    if hasattr(inputs, "keys") and "input_ids" in inputs:
         inputs = {key: value.to(model.device) for key, value in inputs.items()}
         input_length = inputs["input_ids"].shape[-1]
     else:
