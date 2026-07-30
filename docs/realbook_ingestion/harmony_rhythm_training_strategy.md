@@ -11,8 +11,8 @@ fine-tuning/evaluation:
 ```text
 canonical lead-sheet storage
   -> harmony-rhythm candidate rendering
-  -> SFT / zero-shot evaluation prompt
-  -> model output
+  -> zero-shot JSON prompt or token-level classifier rendering
+  -> model output / gathered mask-token logits
   -> deterministic scoring against harmony_stream
 ```
 
@@ -93,8 +93,12 @@ Expected output:
 [1, 0, 1, 1]
 ```
 
-The output must be a JSON array of `0`/`1` integers with the same length as the
-input row count.
+For zero-shot generation, the output must be a JSON array of `0`/`1` integers
+with the same length as the input row count.
+
+For fine-tuning, do not train the model to autoregressively generate the JSON
+array. Use the fixed-length token-classifier route described in
+[Harmony-Rhythm Token Classifier](harmony_rhythm_token_classifier.md).
 
 ## Prompt Template
 
@@ -145,6 +149,10 @@ Required metrics:
 
 Invalid outputs are scored as all-zero predictions in aggregate metrics so that
 format failures are penalized.
+
+The JSON-generation baseline is retained only as a pre-finetuning diagnostic.
+The production training path gathers `0`/`1` logits at fixed label-slot mask
+positions, so output length is enforced by code instead of by prompting.
 
 ## Data Split
 

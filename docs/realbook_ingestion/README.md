@@ -33,7 +33,7 @@ Out of scope for this documentation pass:
 - PDF extraction implementation.
 - Full arrangement extraction.
 - Drum, groove, or bass transcription.
-- Fine-tuning or model training.
+- Production-scale training infrastructure.
 - Score rendering.
 
 ## Documents
@@ -42,6 +42,7 @@ Out of scope for this documentation pass:
 - [Model Temporal Rendering](model_temporal_rendering.md): conversion from canonical storage into event grids, compact text, prompt views, and RAG chunks for model consumption.
 - [OpenBook Mako Conversion](openbook_mako_conversion.md): static converter route from OpenBook `.ly.mako` symbolic lead sheets into canonical lead-sheet JSON.
 - [Harmony-Rhythm Training Strategy](harmony_rhythm_training_strategy.md): elastic candidate rendering, prompt format, and scoring for training chord-change timing.
+- [Harmony-Rhythm Token Classifier](harmony_rhythm_token_classifier.md): fixed-length Qwen sequence-labeling objective, mask-slot logits, and custom loss for chord-change timing.
 
 ## Design rule
 
