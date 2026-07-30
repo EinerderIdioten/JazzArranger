@@ -357,27 +357,40 @@ def generate_response(
     import torch
 
     try:
-        input_ids = tokenizer.apply_chat_template(
+        inputs = tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
+            tokenize=True,
+            return_dict=True,
             return_tensors="pt",
             enable_thinking=False,
         )
     except TypeError:
-        input_ids = tokenizer.apply_chat_template(
+        inputs = tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
+            tokenize=True,
             return_tensors="pt",
         )
-    input_ids = input_ids.to(model.device)
+    if isinstance(inputs, dict):
+        inputs = {key: value.to(model.device) for key, value in inputs.items()}
+        input_length = inputs["input_ids"].shape[-1]
+    else:
+        inputs = inputs.to(model.device)
+        input_length = inputs.shape[-1]
     with torch.inference_mode():
+        generation_kwargs: dict[str, Any]
+        if isinstance(inputs, dict):
+            generation_kwargs = dict(inputs)
+        else:
+            generation_kwargs = {"input_ids": inputs}
         output_ids = model.generate(
-            input_ids,
+            **generation_kwargs,
             max_new_tokens=max_new_tokens,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
-    generated = output_ids[0, input_ids.shape[-1] :]
+    generated = output_ids[0, input_length:]
     return tokenizer.decode(generated, skip_special_tokens=True).strip()
 
 
