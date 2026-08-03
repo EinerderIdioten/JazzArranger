@@ -1,441 +1,207 @@
-# Qwen3 Jazz Reharmonization 实施计划（v1）
+# Qwen3-Coder-1.7B Jazz Reharmonization 研究计划
 
-这份计划基于仓库里现有的三块基础能力：
+## 1. 思路判断
 
-1. **Canonical storage**：`docs/realbook_ingestion/canonical_storage.md`
-2. **Temporal rendering**：`docs/realbook_ingestion/model_temporal_rendering.md`
-3. **Chord-aware tokenizer / harmony training**：`docs/realbook_ingestion/chord_aware_tokenizer.md`、`docs/realbook_ingestion/harmony_rhythm_training_strategy.md`、`docs/realbook_ingestion/harmony_rhythm_token_classifier.md`
+当前方案是合理的：第一阶段不直接训练最终 reharmonization，而是先训练一个能理解“旋律音对当前和弦的支撑作用”的模型。这个模型可以作为 teacher，为没有细粒度标注的 jazz 数据生成派生分析。后续做 reharmonization 时，可以保留 Qwen3-Coder-1.7B backbone，但更换输出头和训练目标。
 
-目标不是先把模型做成一个通用音乐大模型，而是先让 **Qwen3-Coder-1.7B** 在符号音乐里学会：
+核心原则是：
 
-- 识别旋律与和声的对齐关系
-- 学会 chord root / quality / bass / timing 这些基础和声因子
-- 最终根据旋律生成可用的 jazz reharmonization
+- 不把大量 derived 信息挂到每个音符的原始存储里。
+- 先把不同数据集归一成同一种 lead-sheet 格式。
+- 第一阶段训练 note-to-chord support，而不是 final chord generation。
+- 第二阶段以后把 teacher 标注出的 latent / score 用于 reharmonization 数据构建。
 
----
+## 2. 一阶段数据集
 
-## 1. 现有仓库约束
+一阶段只使用有明确 melody-harmony 对齐价值的数据：
 
-仓库当前已经把数据和训练问题切成了三层：
+1. **OpenBook**  
+   仓库已有 canonical lead-sheet JSON，是 jazz lead sheet 主数据源。
 
-### 1.1 Canonical storage
-
-Canonical JSON 里的核心结构是：
-
-- `context`
-- `harmony_stream`
-- `melody_stream`
-- `review`
-
-这层是**源数据**，不能为了训练方便而改成密集 note-level factor 表。
-
-### 1.2 Model-facing rendering
-
-仓库已经定义了把 canonical 数据渲染成模型可读视图的方式：
-
-- `event_grid`
-- `compact_text`
-- `prompt_view`
-- `REMI-like token stream`
-
-这意味着模型看到的不是原始文件，而是**经过时序重排的视图**。
-
-### 1.3 Tokenizer / harmony scope
-
-当前 tokenizer 方案已经支持：
-
-- root tokens
-- quality tokens
-- tension tokens
-- bass tokens
-- surface chord tokens（可选）
-
-并且当前 active scope 是：
-
-- **root + quality**
-
-这很重要：第一阶段先不要把所有因子都开满，而是先把最关键的和声因子学稳。
-
----
-
-## 2. 总体策略
-
-### 2.1 Qwen backbone 可以全量继续预训练
-
-你说得对，Qwen3-Coder-1.7B **不需要长期冻结**。
-
-更合理的做法是：
-
-1. 先在更容易学的、结构化的符号音乐表示上做继续预训练
-2. 再切到监督任务
-3. 最后做 reharmonization 端到端微调
-
-也就是说，Qwen 既可以当 backbone，也可以在后期全量更新。
-
-### 2.2 不把因子挂到每个音上
-
-你前面提到的 concern 很关键：
-
-- 不要把 derived factor 塞进每个 note
-- 不要让 note-level 输入变成一大串噪音
-
-所以训练上只保留两类东西：
-
-- **瘦输入**：旋律、节拍、时值、局部和声上下文
-- **稀疏监督**：chord change、root、quality、bass、cadence
-
-派生因子如果要用，应该进入：
-
-- context embedding
-- span-level latent
-- auxiliary supervision
-
-而不是每个 note 的字段。
-
----
-
-## 3. 数据集选择
-
-这里把数据分成三层：主监督、辅助监督、后期扩展。
-
-### 3.1 主监督数据：先学会“旋律 → 和声”
-
-这一层必须是**显式 harmony** 数据。
-
-优先顺序建议是：
-
-1. **OpenBook / 本仓库 canonical jazz lead sheets**  
-   这是仓库的主数据源，格式已经统一成 canonical lead-sheet JSON。
-
-2. **HookTheory / HLSD**  
-   适合学 melody-harmony 对齐，是最直接的 lead-sheet 监督源之一。
+2. **HLSD / HookTheory**  
+   有 melody、harmony、key、beat 对齐，适合训练旋律与和弦的局部关系。
 
 3. **POP909**  
-   有 beat / chord / key 标注，适合训练 chord change、section boundary、pop harmony 结构。
+   有 melody、piano accompaniment、beat、key、chord 标注，适合补充流行语境下的旋律-和声关系。
 
 4. **EMOPIA+**  
-   这套数据把 melody / chord / key 和 functional representation 连起来，适合做 harmony + performance 的桥接。
+   有 melody、chord、key-relative functional representation，适合补充功能和声表示和 piano performance 相关信息。
 
-5. **PDMX（只在可解析 MusicXML 的部分上使用）**  
-   适合作为公有领域谱面补充源，但不是最核心的 chord label 数据集。
+第一阶段暂不使用 MetaMIDI、GigaMIDI、Discover、Godzilla、LMD 这类大规模 MIDI 仓库作为主监督数据。它们可以留到后续做弱监督扩展或风格补充。
 
-### 3.2 辅助监督数据：扩大语料，但不直接当 chord truth
+## 3. 统一数据格式
 
-这一层更偏大规模符号音乐语言建模。
+四个数据集需要先归并到统一的 canonical lead-sheet 格式。源数据仍保留原始文件，训练只消费派生视图。
 
-建议顺序：
-
-1. **MetaMIDI**
-2. **GigaMIDI**
-3. **Discover MIDI Dataset**
-4. **Godzilla MIDI Dataset**
-5. **Lakh MIDI Dataset**
-
-这些数据可以提供：
-
-- 风格多样性
-- 旋律轮廓
-- 伴奏纹理
-- 和声统计先验
-
-但默认不要把它们当成真值 chord supervision。
-
-### 3.3 后期扩展数据：更偏表演、控制、文本化
-
-如果主任务已经稳定，再引入：
-
-- **MAESTRO**：表演 timing / velocity / pedal
-- **Slakh**：多轨 voicing / orchestration
-- **MetaScore**：文本标签 / caption 控制
-- **XMIDI**、社区 anime MIDI：情绪或风格补充
-
-这些不建议放在第一阶段主任务里。
-
----
-
-## 4. 数据格式落地方式
-
-### 4.1 统一到 canonical lead-sheet JSON
-
-所有能进入主流程的数据，尽量都转换成：
+### 3.1 Canonical storage
 
 ```json
 {
   "schema": "lead_sheet.v0",
-  "context": {...},
-  "harmony_stream": [[bar, beat, symbol, duration_beats], ...],
-  "melody_stream": [[bar, beat, pitch, duration_beats, tag], ...],
-  "review": {...}
+  "context": {
+    "title": "...",
+    "key": "C major",
+    "meter": "4/4",
+    "tempo": 120,
+    "style": "jazz_ballad",
+    "source_dataset": "openbook|hlsd|pop909|emopia_plus"
+  },
+  "harmony_stream": [
+    [1, 1.0, "Dm7", 4.0]
+  ],
+  "melody_stream": [
+    [1, 1.0, "F4", 2.0, "unknown"]
+  ],
+  "review": {
+    "status": "auto_converted",
+    "notes": []
+  }
 }
 ```
 
-### 4.2 不在存储里加密集 factor 字段
+### 3.2 Derived analysis 不进入 raw stream
 
-如果要做 salience / root affinity / harmonic tension 这类信息，建议：
+第一阶段 teacher 产生的分析应放在单独 sidecar 或 `analysis` 层里，不写进 `melody_stream`：
 
-- 作为单独的 derived analysis 层存储
-- 不写进 raw melody_stream
-- 不作为主输入展开到每个 note
+```json
+{
+  "schema": "note_chord_support.v0",
+  "source_id": "...",
+  "teacher_version": "qwen3_support_teacher_v1",
+  "note_support": [
+    {
+      "bar": 1,
+      "beat": 1.0,
+      "pitch": "F4",
+      "active_chord": "Dm7",
+      "support_score": 0.86,
+      "role_distribution": {
+        "root": 0.02,
+        "third": 0.81,
+        "fifth": 0.03,
+        "seventh": 0.04,
+        "tension": 0.08,
+        "non_chord": 0.02
+      },
+      "confidence": 0.91
+    }
+  ]
+}
+```
 
-### 4.3 模型视图只用三种
+训练输入不需要把这些字段全部展开给模型。它们主要用于监督 loss、teacher 输出缓存、后续数据过滤和再标注。
 
-1. `compact_text`
-2. `prompt_view`
-3. `candidate row` 形式的训练序列
+## 4. 一阶段训练目标
 
-原则是：
-
-- 存储层可以完整
-- 训练层必须瘦
-
----
-
-## 5. 训练阶段设计
-
-## Phase 0：数据准备和标准化
-
-目标：把所有训练数据变成统一的 canonical 和 rendered 视图。
-
-要做的事：
-
-- OpenBook / 其他 lead-sheet 数据统一进 canonical storage
-- tune-level 去重和 split
-- 12-key transposition augmentation
-- 生成 compact_text / prompt_view / candidate rows
-- 记录每条样本的 provenance 和版本号
-
-产物：
-
-- canonical JSON
-- transposed canonical JSON
-- rendered training views
-- split manifest
-
----
-
-## Phase 1：Qwen 结构化继续预训练
-
-目标：让 Qwen3-Coder-1.7B 熟悉这个项目的符号语言，而不是直接学成一个“随机文本生成器”。
-
-训练输入建议：
-
-- `compact_text`
-- `prompt_view`
-- 少量 `event_grid`
-
-训练内容建议：
-
-- chord / melody 的顺序建模
-- bar / beat 位置的概念
-- harmony 与 melody 的同步关系
-- key / meter / style 的基础对齐
-
-这一阶段可以全量继续预训练，不需要长期冻结 backbone。
-
-但建议先从**最结构化的渲染视图**开始，而不是直接上原始 JSON。
-
----
-
-## Phase 2：和声时序任务
-
-目标：先让模型学会“哪里换和弦”。
-
-训练任务：
-
-- harmony-rhythm / chord-change prediction
-- candidate-based binary labeling
-
-这一步可以直接用仓库里已有的：
-
-- `run_qwen3_harmony_rhythm_baseline.py`
-- `train_qwen3_harmony_rhythm_token_classifier.py`
-
-作为原型。
+一阶段目标是训练一个 **note-to-current-chord support teacher**。
 
 输入：
 
-- 旋律候选点
-- bar / beat / type / pitch / duration
+- melody window
+- 当前 active chord
+- key / meter / beat position
+- note onset / duration / optional velocity
+- 前后少量上下文 chord
 
 输出：
 
-- 是否换和弦
+- 当前音对 active chord 的支撑分数 `support_score`
+- 当前音相对 active chord 的角色分布
+- 可选的 confidence
 
-这一步的价值是给后续 reharmonization 提供稳定的和声边界。
+这里不使用简单的 `structural / passing` 二分类，因为这个标签太粗。模型需要学习的是连续的、和声条件化的支撑关系。
 
----
+推荐监督项：
 
-## Phase 3：基础和声因子学习
+- `role_distribution`：root / third / fifth / seventh / tension / non_chord
+- `support_score`：连续回归
+- `active_chord_root`：辅助预测
+- `active_chord_quality`：辅助预测
+- `chord_change_position`：辅助预测
 
-目标：让模型学会 chord root / quality / bass 这类最基本的和声因子。
+## 5. 模型结构
 
-训练任务：
+第一阶段不需要单独做 music encoder 和 factor encoder 两个大模块。建议结构为：
 
-- root prediction
-- quality prediction
-- bass / inversion prediction
-- chord span prediction
+```text
+canonical/rendered lead-sheet view
+  -> Qwen3-Coder-1.7B backbone
+  -> support analysis head
+```
 
-这里可以利用 `prepare_qwen_chord_tokenizer.py` 生成的 token 体系：
+### 5.1 Backbone
 
-- `<ROOT:...>`
-- `<QUAL:...>`
-- `<BASS:...>`
-- `<TENS:...>`
+使用 Qwen3-Coder-1.7B。可以全量继续训练，不必长期冻结。
 
-但第一轮仍建议只把 root 和 quality 作为主激活范围。
+### 5.2 一阶段输出头
 
-这一步的意义是：
+一阶段输出头是 support analysis head，用于每个候选 note 的监督：
 
-- 先学“和弦是什么”
-- 再学“怎么 reharmonize”
+- support score regression head
+- role distribution classification head
+- auxiliary root / quality / change heads
 
----
+为了复用 Qwen 的 LM 能力，也可以先用 mask-token logits 实现一版离散分类头，再逐步替换成显式 projection head。
 
-## Phase 4：reharmonization 主任务
+### 5.3 Reharmonization 阶段输出头
 
-目标：输入旋律，输出可用的 jazz 和声编排。
+后续 reharmonization 不沿用 support analysis head，而是更换为生成式 harmony head：
 
-训练输入：
+```text
+Qwen3-Coder-1.7B backbone
+  -> reharmonization generation head
+  -> canonical-style harmony_stream
+```
 
-- 旋律的 compact / prompt view
-- key / meter / tempo / style
-- 压缩后的和声上下文
+输出目标包括：
 
-训练输出：
+- chord change timing
+- root
+- quality
+- tension
+- slash bass
+- optional voicing / bass plan
 
-- canonical-style `harmony_stream`
-- 可选的 bass / voicing plan
+因此，一阶段 teacher 和最终 reharmonizer 共享 backbone 思路，但输出头和 loss 不同。
 
-这一阶段不再只做分类，而是做真正的生成。
+## 6. 训练阶段
 
-建议先从：
+### Phase 0：数据转换
 
-- `melody -> chord skeleton`
+- OpenBook 保持现有 canonical 格式。
+- HLSD 转成 `harmony_stream` + `melody_stream`。
+- POP909 从 MIDI、`chord_audio/beat_audio.txt`、`key_audio.txt` 转成 canonical。
+- EMOPIA+ 从 functional / lead-sheet 表示转成 canonical。
+- 所有数据按 tune-level split，避免同一曲目的转调版本泄漏到不同 split。
 
-开始，再扩展到：
+### Phase 1：support teacher 训练
 
-- `melody -> chord + bass`
-- `melody -> chord + voicing`
-- `melody -> full reharmonization`
+- 输入 melody + current chord context。
+- 输出 note-to-chord support。
+- 训练 Qwen3-Coder-1.7B backbone + support analysis head。
+- 可以先冻结底层少量 embedding / tokenizer warmup，再全量训练 backbone。
 
----
+### Phase 2：teacher 标注
 
-## Phase 5：全量联合微调
+- 用 Phase 1 teacher 标注 OpenBook 和后续 jazz 数据。
+- 生成 `note_chord_support.v0` sidecar。
+- 根据 confidence 过滤低质量样本。
 
-当上面的任务都稳定后，再做全量联合微调：
+### Phase 3：reharmonization 训练
 
-- backbone 不再只看单一任务
-- chord timing、root、quality、reharmonization 一起优化
-- 让模型在统一 latent 中整合这些能力
+- 替换 support analysis head 为 reharmonization generation head。
+- 输入 melody + optional teacher sidecar summary。
+- 输出 canonical-style `reharmonized_harmony_stream`。
+- 先训练 chord skeleton，再扩展到 tension、slash bass、voicing。
 
-这个阶段才适合把 Qwen 真正当成最终 backbone。
+## 7. 当前最小可行版本
 
----
+最小可行实现建议：
 
-## 6. 冻结策略
+1. 把 OpenBook、HLSD、POP909、EMOPIA+ 统一成 canonical lead-sheet JSON。
+2. 生成 note-chord candidate rows。
+3. 使用 Qwen3-Coder-1.7B 训练 support teacher。
+4. teacher 输出 `note_chord_support.v0` sidecar。
+5. 后续 reharmonization 阶段更换输出头，不复用第一阶段 support head。
 
-你说得对：**不要三个部分从一开始一起训练**。
-
-### 推荐顺序
-
-#### 6.1 初始阶段
-
-- backbone 可以全量继续预训练
-- 但任务先单一：只做 canonical rendering / harmony timing / chord factor
-
-#### 6.2 中间阶段
-
-- 逐步加入 reharmonization
-- 保持任务分离
-- 不要一上来把所有头一起开
-
-#### 6.3 最终阶段
-
-- 允许 backbone 全量更新
-- 做端到端联合微调
-
-### 不建议
-
-- 一开始就把 note-level 因子、和声生成、文本控制一起训
-- 一开始就用所有数据集混合大乱炖
-
----
-
-## 7. 具体代码落地顺序
-
-建议按下面顺序实现：
-
-### Step 1
-补齐数据 ingress：
-
-- 把 OpenBook / 其他主监督源统一成 canonical lead-sheet JSON
-- 确保 `harmony_stream` / `melody_stream` 结构一致
-
-### Step 2
-完善 rendered views：
-
-- `event_grid`
-- `compact_text`
-- `prompt_view`
-- `candidate rows`
-
-### Step 3
-扩展 tokenizer：
-
-- 固定 root / quality tokens
-- 先不把 tension / bass / surface token 全开
-
-### Step 4
-先跑 harmony timing baseline：
-
-- 验证 candidate coverage
-- 验证 token-classifier 的稳定性
-
-### Step 5
-做 chord factor 训练：
-
-- root / quality / bass
-- 先在 OpenBook + HookTheory / POP909 / EMOPIA+ 上跑通
-
-### Step 6
-进入 reharmonization：
-
-- 用 canonical prompt 直接生成 chord stream
-- 评估和旋律兼容性、功能走向和可读性
-
----
-
-## 8. 这一版计划的核心原则
-
-1. **canonical storage 保持完整，不为模型妥协**
-2. **训练输入必须瘦，不能把 factor 塞进每个音**
-3. **Qwen3-Coder-1.7B 可以全量继续预训练**
-4. **先学 timing，再学 factor，再学 reharmonization**
-5. **数据集以 OpenBook 为主，外部 lead-sheet 数据做补充，超大 MIDI 语料做后期扩展**
-
----
-
-## 9. 当前最建议的实际起点
-
-如果现在只做一个最小可行版本，我建议：
-
-1. **OpenBook canonical + prompt_view**
-2. **Qwen3-Coder-1.7B 全量继续预训练**
-3. **harmony-rhythm candidate classification**
-4. **root / quality factor token 学习**
-5. **melody -> chord skeleton reharmonization**
-
-这条路最短，也最贴合当前仓库已经实现的基础设施。
-
----
-
-## 10. 下一步可以补的内容
-
-如果你要，我下一步可以继续把这份计划细化成：
-
-- 一个**里程碑表**
-- 一个**数据集优先级清单**
-- 一个**按脚本拆分的开发任务表**
-
-也可以直接把这份计划进一步改成更正式的项目设计文档。
+这个版本足够短，也和仓库现有 tokenizer、canonical storage、candidate training 思路保持一致。
