@@ -19,6 +19,7 @@ from src.data.common import (
     ensure_dirs,
     melody_notes_to_abc,
     normalize_root_name,
+    normalize_notes_and_chords_to_c,
     validate_chord_spans,
     validate_harmony_text,
     write_json,
@@ -421,7 +422,7 @@ def convert_song(song_dir: Path) -> tuple[list[dict], list[dict]]:
         first_time = segment[0].start_time
         key = read_pop909_key(song_dir / "key_audio.txt", first_time)
         title = f"pop909_{song_id}_seg{idx}"
-        abc_melody, abc_stats = melody_notes_to_abc(
+        original_abc_melody, _ = melody_notes_to_abc(
             segment_notes,
             total_grid=total_grid,
             title=title,
@@ -430,8 +431,25 @@ def convert_song(song_dir: Path) -> tuple[list[dict], list[dict]]:
             unit_length="1/16",
             bar_grid=bar_grid,
         )
-        harmony = chord_spans_to_harmony(spans)
-        harmony_tokens = chord_spans_to_tokenized_harmony(spans)
+        original_harmony = chord_spans_to_harmony(spans)
+        original_harmony_tokens = chord_spans_to_tokenized_harmony(spans)
+
+        normalized_notes, normalized_spans, normalized_key, normalization = normalize_notes_and_chords_to_c(
+            segment_notes,
+            spans,
+            key,
+        )
+        abc_melody, abc_stats = melody_notes_to_abc(
+            normalized_notes,
+            total_grid=total_grid,
+            title=title,
+            key=normalized_key,
+            time_signature=time_signature,
+            unit_length="1/16",
+            bar_grid=bar_grid,
+        )
+        harmony = chord_spans_to_harmony(normalized_spans)
+        harmony_tokens = chord_spans_to_tokenized_harmony(normalized_spans)
         harmony_errors = validate_harmony_text(harmony) + validate_tokenized_harmony_text(harmony_tokens)
         if harmony_errors:
             failures.append(
@@ -454,11 +472,20 @@ def convert_song(song_dir: Path) -> tuple[list[dict], list[dict]]:
                 "abc_melody": abc_melody,
                 "grid_resolution": "1/16",
                 "time_signature": time_signature,
-                "key": key,
+                "key": normalized_key,
+                "original_key": key,
                 "total_grid": total_grid,
-                "chords": [span.to_json() for span in spans],
+                "chords": [span.to_json() for span in normalized_spans],
                 "harmony": harmony,
                 "harmony_tokens": harmony_tokens,
+                "normalization": normalization,
+                "original": {
+                    "abc_melody": original_abc_melody,
+                    "key": key,
+                    "chords": [span.to_json() for span in spans],
+                    "harmony": original_harmony,
+                    "harmony_tokens": original_harmony_tokens,
+                },
                 "metadata": {
                     "song_id": song_id,
                     "segment_index": idx,
@@ -480,6 +507,9 @@ def convert(raw_root: Path, output_dir: Path, log_dir: Path) -> dict:
     failures: list[dict] = []
     quality_counter: Counter = Counter()
     root_counter: Counter = Counter()
+    key_counter: Counter = Counter()
+    source_key_counter: Counter = Counter()
+    transpose_counter: Counter = Counter()
     split_counter: Counter = Counter()
     conversion_counter: Counter = Counter()
 
@@ -496,6 +526,9 @@ def convert(raw_root: Path, output_dir: Path, log_dir: Path) -> dict:
             conversion_counter["converted"] += 1
             conversion_counter["dropped_same_start_notes"] += row["conversion"]["dropped_same_start_notes"]
             conversion_counter["truncated_overlapping_notes"] += row["conversion"]["truncated_overlapping_notes"]
+            key_counter[row["key"]] += 1
+            source_key_counter[row["original_key"]] += 1
+            transpose_counter[str(row["normalization"]["transpose_semitones"])] += 1
             for chord in row["chords"]:
                 quality_counter[chord["quality"]] += 1
                 root_counter[chord["root"]] += 1
@@ -514,6 +547,9 @@ def convert(raw_root: Path, output_dir: Path, log_dir: Path) -> dict:
         "converted_records": conversion_counter["converted"],
         "failed_segments": len(failures),
         "split_counts": counter_to_sorted_dict(split_counter),
+        "key_distribution": counter_to_sorted_dict(key_counter),
+        "source_key_distribution": counter_to_sorted_dict(source_key_counter),
+        "transpose_distribution": counter_to_sorted_dict(transpose_counter),
         "quality_distribution": counter_to_sorted_dict(quality_counter),
         "root_distribution": counter_to_sorted_dict(root_counter),
         "conversion_stats": counter_to_sorted_dict(conversion_counter),

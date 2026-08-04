@@ -25,18 +25,18 @@ ROOT_ALIASES = {
 }
 
 ABC_PITCHES_SHARP = {
-    0: "C",
+    0: "=C",
     1: "^C",
-    2: "D",
+    2: "=D",
     3: "^D",
-    4: "E",
-    5: "F",
+    4: "=E",
+    5: "=F",
     6: "^F",
-    7: "G",
+    7: "=G",
     8: "^G",
-    9: "A",
+    9: "=A",
     10: "^A",
-    11: "B",
+    11: "=B",
 }
 
 QUALITY_MAP = {
@@ -145,6 +145,93 @@ def key_to_schema_key(raw_key: str | None) -> str:
     mode = "min" if raw_key[:1].islower() else "maj"
     root = normalize_root_name(raw_key) or raw_key[:1].upper() + raw_key[1:]
     return f"{root}:{mode}"
+
+
+def schema_key_parts(schema_key: str | None) -> tuple[str, str]:
+    if not schema_key:
+        return "C", "maj"
+    raw = str(schema_key).strip()
+    if ":" in raw:
+        root_raw, mode_raw = raw.split(":", 1)
+    else:
+        root_raw, mode_raw = raw, "maj"
+    root = normalize_root_name(root_raw) or "C"
+    mode_raw = mode_raw.strip().lower()
+    if mode_raw.startswith(("maj", "major")) or not mode_raw:
+        mode = "maj"
+    elif mode_raw in {"m", "min", "minor"} or mode_raw.startswith("min"):
+        mode = "min"
+    else:
+        mode = mode_raw
+    return root, mode
+
+
+def schema_key_to_abc_key(schema_key: str | None) -> str:
+    root, mode = schema_key_parts(schema_key)
+    if mode == "min":
+        return f"{root}m"
+    if mode == "maj":
+        return root
+    return f"{root}{mode}"
+
+
+def semitone_delta_to_c(schema_key: str | None) -> int:
+    root, _ = schema_key_parts(schema_key)
+    delta = -ROOTS_SHARP.index(root)
+    while delta > 6:
+        delta -= 12
+    while delta <= -6:
+        delta += 12
+    return delta
+
+
+def transpose_root(root: str, semitones: int) -> str:
+    normalized = normalize_root_name(root)
+    if normalized is None:
+        raise ValueError(f"invalid root: {root}")
+    return ROOTS_SHARP[(ROOTS_SHARP.index(normalized) + semitones) % len(ROOTS_SHARP)]
+
+
+def transpose_note_events(notes: list[NoteEvent], semitones: int) -> list[NoteEvent]:
+    return [
+        NoteEvent(start=note.start, end=note.end, pitch=note.pitch + semitones)
+        for note in notes
+    ]
+
+
+def transpose_chord_spans(chords: list[ChordSpan], semitones: int) -> list[ChordSpan]:
+    return [
+        ChordSpan(
+            start=chord.start,
+            end=chord.end,
+            root=transpose_root(chord.root, semitones),
+            quality=chord.quality,
+            raw=chord.raw,
+        )
+        for chord in chords
+    ]
+
+
+def normalize_key_to_c(schema_key: str | None) -> tuple[str, int]:
+    _, mode = schema_key_parts(schema_key)
+    return f"C:{mode}", semitone_delta_to_c(schema_key)
+
+
+def normalize_notes_and_chords_to_c(
+    notes: list[NoteEvent],
+    chords: list[ChordSpan],
+    key: str | None,
+) -> tuple[list[NoteEvent], list[ChordSpan], str, dict]:
+    normalized_key, semitones = normalize_key_to_c(key)
+    normalized_notes = transpose_note_events(notes, semitones)
+    normalized_chords = transpose_chord_spans(chords, semitones)
+    return normalized_notes, normalized_chords, normalized_key, {
+        "enabled": True,
+        "target_tonic": "C",
+        "source_key": key or "C:maj",
+        "normalized_key": normalized_key,
+        "transpose_semitones": semitones,
+    }
 
 
 def canonicalize_root_quality(root: str | int, quality: str) -> tuple[str, str] | None:
@@ -316,7 +403,7 @@ def melody_notes_to_abc(
             f"T:{title}",
             f"M:{time_signature}",
             f"L:{unit_length}",
-            f"K:{key.split(':', 1)[0]}",
+            f"K:{schema_key_to_abc_key(key)}",
             *body_lines,
         ]
     )

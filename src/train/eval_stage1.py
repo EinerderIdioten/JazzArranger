@@ -68,7 +68,7 @@ def main() -> None:
     parser.add_argument("--data-dir", type=Path, default=Path("data/processed"))
     parser.add_argument("--split", default="val")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/stage1-eval"))
-    parser.add_argument("--max-input-length", type=int, default=2048)
+    parser.add_argument("--max-input-length", type=int, default=4096)
     parser.add_argument("--max-new-tokens", type=int, default=768)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--include-zero-weight", action="store_true")

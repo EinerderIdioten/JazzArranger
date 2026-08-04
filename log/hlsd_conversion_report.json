@@ -9,6 +9,25 @@
   "split_counts": {
     "train": 11
   },
+  "key_distribution": {
+    "C:maj": 11
+  },
+  "source_key_distribution": {
+    "C#:maj": 1,
+    "D:maj": 3,
+    "F#:maj": 2,
+    "F:maj": 2,
+    "G#:maj": 1,
+    "G:maj": 2
+  },
+  "transpose_distribution": {
+    "-1": 1,
+    "-2": 3,
+    "-5": 2,
+    "4": 1,
+    "5": 2,
+    "6": 2
+  },
   "quality_distribution": {
     "dom7": 6,
     "maj": 46,
@@ -19,17 +38,15 @@
     "sus4": 4
   },
   "root_distribution": {
-    "A": 11,
-    "A#": 4,
-    "B": 8,
-    "C": 14,
-    "C#": 12,
-    "D": 12,
-    "E": 8,
-    "F": 6,
-    "F#": 8,
-    "G": 10,
-    "G#": 2
+    "A": 5,
+    "A#": 10,
+    "C": 22,
+    "D": 1,
+    "D#": 6,
+    "E": 2,
+    "F": 20,
+    "G": 16,
+    "G#": 13
   },
   "conversion_stats": {
     "bad_coverage": 2,

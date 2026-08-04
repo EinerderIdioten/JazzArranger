@@ -17,8 +17,8 @@ the model embedding matrix and LM head must be resized:
 
 ```bash
 python3 -m src.train.tokenizer_setup \
-  --model-name-or-path Qwen/Qwen3-Coder-1.7B \
-  --output-dir outputs/tokenizer-qwen3-coder-1.7b \
+  --model-name-or-path Qwen/Qwen3-1.7B-Base \
+  --output-dir outputs/tokenizer-qwen3-1.7b-base \
   --trust-remote-code
 ```
 
@@ -29,6 +29,11 @@ training.
 
 Training uses `data/processed/*_train.jsonl`; validation uses
 `data/processed/*_val.jsonl`.
+
+The main processed fields are already key-normalized for training. `abc_melody`,
+`key`, `chords`, `harmony`, and `harmony_tokens` are C-centered; original
+pre-transposition values are kept under `original`, with the reversible shift in
+`normalization.transpose_semitones`.
 
 Rows with `dataset_weight <= 0` are excluded by default. That means OpenBook is
 available for audit but not used in the first supervised run unless
@@ -57,10 +62,10 @@ Use conservative full-parameter settings first:
 
 ```bash
 python3 -m src.train.sft_stage1 \
-  --model-name-or-path Qwen/Qwen3-Coder-1.7B \
+  --model-name-or-path Qwen/Qwen3-1.7B-Base \
   --data-dir data/processed \
-  --output-dir outputs/stage1-qwen3-coder-1.7b-full \
-  --max-length 2048 \
+  --output-dir outputs/stage1-qwen3-1.7b-base-full \
+  --max-length 4096 \
   --per-device-train-batch-size 1 \
   --per-device-eval-batch-size 1 \
   --gradient-accumulation-steps 16 \
@@ -71,15 +76,17 @@ python3 -m src.train.sft_stage1 \
   --trust-remote-code
 ```
 
-If too many samples are skipped for `over_max_length`, rerun with a larger
-`--max-length` if memory allows, or add a chunking preprocessing step before
+Post-normalization tokenizer dry checks showed that `--max-length 2048` skips too
+many active training rows. `4096` keeps most rows while remaining the first
+reasonable setting to try on a 24 GB 4090. If it is still too tight for
+full-parameter AdamW, drop to `3072` or add a chunking preprocessing step before
 training.
 
 ## Eval
 
 ```bash
 python3 -m src.train.eval_stage1 \
-  --model-name-or-path outputs/stage1-qwen3-coder-1.7b-full \
+  --model-name-or-path outputs/stage1-qwen3-1.7b-base-full \
   --data-dir data/processed \
   --split val \
   --output-dir outputs/stage1-eval \

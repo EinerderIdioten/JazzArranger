@@ -80,10 +80,10 @@ def make_trainer_class():
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-name-or-path", default="Qwen/Qwen3-Coder-1.7B")
+    parser.add_argument("--model-name-or-path", default="Qwen/Qwen3-1.7B-Base")
     parser.add_argument("--data-dir", type=Path, default=Path("data/processed"))
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/stage1-full-sft"))
-    parser.add_argument("--max-length", type=int, default=2048)
+    parser.add_argument("--max-length", type=int, default=4096)
     parser.add_argument("--num-train-epochs", type=float, default=2.0)
     parser.add_argument("--per-device-train-batch-size", type=int, default=1)
     parser.add_argument("--per-device-eval-batch-size", type=int, default=1)

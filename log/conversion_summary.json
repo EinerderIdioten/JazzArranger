@@ -12,6 +12,50 @@
         "train": 713,
         "val": 95
       },
+      "key_distribution": {
+        "C:maj": 519,
+        "C:min": 360
+      },
+      "source_key_distribution": {
+        "A#:maj": 23,
+        "A#:min": 11,
+        "A:maj": 53,
+        "A:min": 48,
+        "B:maj": 23,
+        "B:min": 21,
+        "C#:maj": 39,
+        "C#:min": 24,
+        "C:maj": 65,
+        "C:min": 50,
+        "D#:maj": 45,
+        "D#:min": 21,
+        "D:maj": 62,
+        "D:min": 55,
+        "E:maj": 44,
+        "E:min": 30,
+        "F#:maj": 32,
+        "F#:min": 17,
+        "F:maj": 52,
+        "F:min": 35,
+        "G#:maj": 40,
+        "G#:min": 13,
+        "G:maj": 41,
+        "G:min": 35
+      },
+      "transpose_distribution": {
+        "-1": 63,
+        "-2": 117,
+        "-3": 66,
+        "-4": 74,
+        "-5": 87,
+        "0": 115,
+        "1": 44,
+        "2": 34,
+        "3": 101,
+        "4": 53,
+        "5": 76,
+        "6": 49
+      },
       "quality_distribution": {
         "aug": 184,
         "dim": 293,
@@ -25,18 +69,18 @@
         "sus4": 1041
       },
       "root_distribution": {
-        "A": 1390,
-        "A#": 1087,
-        "B": 900,
-        "C": 1472,
-        "C#": 1031,
-        "D": 1484,
-        "D#": 953,
-        "E": 1220,
-        "F": 1432,
-        "F#": 942,
-        "G": 1473,
-        "G#": 983
+        "A": 1411,
+        "A#": 583,
+        "B": 190,
+        "C": 3958,
+        "C#": 118,
+        "D": 1019,
+        "D#": 519,
+        "E": 661,
+        "F": 2448,
+        "F#": 80,
+        "G": 2250,
+        "G#": 1130
       },
       "conversion_stats": {
         "contains_no_chord": 192,
@@ -54,6 +98,25 @@
       "split_counts": {
         "train": 11
       },
+      "key_distribution": {
+        "C:maj": 11
+      },
+      "source_key_distribution": {
+        "C#:maj": 1,
+        "D:maj": 3,
+        "F#:maj": 2,
+        "F:maj": 2,
+        "G#:maj": 1,
+        "G:maj": 2
+      },
+      "transpose_distribution": {
+        "-1": 1,
+        "-2": 3,
+        "-5": 2,
+        "4": 1,
+        "5": 2,
+        "6": 2
+      },
       "quality_distribution": {
         "dom7": 6,
         "maj": 46,
@@ -64,17 +127,15 @@
         "sus4": 4
       },
       "root_distribution": {
-        "A": 11,
-        "A#": 4,
-        "B": 8,
-        "C": 14,
-        "C#": 12,
-        "D": 12,
-        "E": 8,
-        "F": 6,
-        "F#": 8,
-        "G": 10,
-        "G#": 2
+        "A": 5,
+        "A#": 10,
+        "C": 22,
+        "D": 1,
+        "D#": 6,
+        "E": 2,
+        "F": 20,
+        "G": 16,
+        "G#": 13
       },
       "conversion_stats": {
         "bad_coverage": 2,
@@ -96,6 +157,50 @@
         "train": 873,
         "val": 105
       },
+      "key_distribution": {
+        "C:maj": 705,
+        "C:min": 380
+      },
+      "source_key_distribution": {
+        "A#:maj": 41,
+        "A#:min": 30,
+        "A:maj": 47,
+        "A:min": 39,
+        "B:maj": 35,
+        "B:min": 35,
+        "C#:maj": 35,
+        "C#:min": 21,
+        "C:maj": 253,
+        "C:min": 46,
+        "D#:maj": 42,
+        "D#:min": 23,
+        "D:maj": 31,
+        "D:min": 30,
+        "E:maj": 40,
+        "E:min": 42,
+        "F#:maj": 33,
+        "F#:min": 21,
+        "F:maj": 44,
+        "F:min": 28,
+        "G#:maj": 46,
+        "G#:min": 28,
+        "G:maj": 58,
+        "G:min": 37
+      },
+      "transpose_distribution": {
+        "-1": 56,
+        "-2": 61,
+        "-3": 65,
+        "-4": 82,
+        "-5": 72,
+        "0": 299,
+        "1": 70,
+        "2": 71,
+        "3": 86,
+        "4": 74,
+        "5": 95,
+        "6": 54
+      },
       "quality_distribution": {
         "aug": 175,
         "dim": 667,
@@ -109,18 +214,18 @@
         "sus4": 3816
       },
       "root_distribution": {
-        "A": 9583,
-        "A#": 8374,
-        "B": 8344,
-        "C": 10745,
-        "C#": 7997,
-        "D": 9688,
-        "D#": 8212,
-        "E": 8816,
-        "F": 9043,
-        "F#": 7715,
-        "G": 10299,
-        "G#": 8172
+        "A": 9531,
+        "A#": 8811,
+        "B": 2411,
+        "C": 21646,
+        "C#": 2463,
+        "D": 7232,
+        "D#": 6283,
+        "E": 6887,
+        "F": 13821,
+        "F#": 2542,
+        "G": 18008,
+        "G#": 7353
       },
       "conversion_stats": {
         "converted": 1085,
@@ -140,6 +245,35 @@
         "train": 75,
         "val": 4
       },
+      "key_distribution": {
+        "C:maj": 88,
+        "C:min": 12
+      },
+      "source_key_distribution": {
+        "A#:maj": 7,
+        "A:min": 1,
+        "C:maj": 20,
+        "C:min": 3,
+        "D#:maj": 11,
+        "D:min": 1,
+        "E:min": 2,
+        "F:maj": 34,
+        "F:min": 4,
+        "G#:maj": 2,
+        "G:maj": 14,
+        "G:min": 1
+      },
+      "transpose_distribution": {
+        "-2": 1,
+        "-3": 11,
+        "-4": 2,
+        "-5": 38,
+        "0": 23,
+        "2": 7,
+        "3": 1,
+        "4": 2,
+        "5": 15
+      },
       "quality_distribution": {
         "aug": 1,
         "dim": 130,
@@ -152,18 +286,18 @@
         "sus4": 3
       },
       "root_distribution": {
-        "A": 366,
-        "A#": 323,
-        "B": 142,
-        "C": 534,
-        "C#": 101,
-        "D": 477,
-        "D#": 254,
-        "E": 231,
-        "F": 474,
-        "F#": 87,
-        "G": 555,
-        "G#": 119
+        "A": 414,
+        "A#": 110,
+        "B": 124,
+        "C": 736,
+        "C#": 75,
+        "D": 648,
+        "D#": 158,
+        "E": 321,
+        "F": 303,
+        "F#": 79,
+        "G": 608,
+        "G#": 87
       },
       "conversion_stats": {
         "converted": 100,

@@ -17,17 +17,63 @@ Each record uses the stage-one schema:
   "grid_resolution": "1/16",
   "time_signature": "4/4",
   "key": "C:maj",
+  "original_key": "Eb:maj",
   "total_grid": 64,
   "chords": [
     {"start": 0, "end": 16, "root": "C", "quality": "maj", "raw": "0_M"}
   ],
   "harmony": "<HARMONY>\n@0-16 C:maj\n</HARMONY>",
-  "harmony_tokens": "<HARMONY>\n<SPAN> @0-16 <R_C> <Q_MAJ> </SPAN>\n</HARMONY>"
+  "harmony_tokens": "<HARMONY>\n<SPAN> @0-16 <R_C> <Q_MAJ> </SPAN>\n</HARMONY>",
+  "normalization": {
+    "enabled": true,
+    "target_tonic": "C",
+    "source_key": "Eb:maj",
+    "normalized_key": "C:maj",
+    "transpose_semitones": -3
+  },
+  "original": {
+    "abc_melody": "X:...\nM:4/4\nL:1/16\nK:Eb\n...",
+    "key": "Eb:maj",
+    "chords": [
+      {"start": 0, "end": 16, "root": "D#", "quality": "maj", "raw": "3_M"}
+    ],
+    "harmony": "<HARMONY>\n@0-16 D#:maj\n</HARMONY>",
+    "harmony_tokens": "<HARMONY>\n<SPAN> @0-16 <R_Eb> <Q_MAJ> </SPAN>\n</HARMONY>"
+  }
 }
 ```
 
 `harmony` is kept for readable inspection. `harmony_tokens` is the supervised
 training target used after tokenizer expansion.
+
+## Key Normalization
+
+The main training fields are C-centered. The converters transpose melody note
+pitches and chord roots together so the source tonic becomes C:
+
+```text
+abc_melody
+key
+chords
+harmony
+harmony_tokens
+```
+
+These fields are the ones consumed by training and evaluation. The original
+pre-transposition values are kept under `original`, and the reversible
+transposition metadata is kept under `normalization`.
+
+Major-like keys become `C:maj`; minor-like keys become `C:min`. The conversion
+does not change chord qualities or span boundaries. For example:
+
+```text
+source key Eb:maj, chord Bb:dom7 -> key C:maj, chord G:dom7
+source key A:min, chord E:dom7 -> key C:min, chord G:dom7
+```
+
+ABC melody output uses explicit accidentals such as `=C`, `^F`, and `^A` so the
+pitch text is stable after transposition and does not depend on accidental state
+inside a bar.
 
 ## Dataset Order
 

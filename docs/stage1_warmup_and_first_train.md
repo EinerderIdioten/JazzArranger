@@ -43,6 +43,8 @@ Warmup validation already performed:
 processed rows: 2075
 datasets: EMOPIA+ 879, HLSD 11, POP909 1085, OpenBook 100
 dataset weights: 1.0 for EMOPIA+/HLSD, 0.7 for POP909, 0.0 for OpenBook
+training keys: C:maj 1323, C:min 752
+original keys preserved: 24 distinct source keys
 harmony token parse errors: 0
 new harmony tokens: 55
 duplicate new tokens: 0
@@ -61,6 +63,20 @@ model LM head rows after resize check: 151936
 short forward pass: OK
 observed warmup CUDA memory: about 3.23 GB
 ```
+
+Tokenizer length dry check after C normalization:
+
+```text
+max_length 2048: train kept 925, skipped 672 over length
+max_length 3072: train kept 1213, skipped 384 over length
+max_length 4096: train kept 1513, skipped 84 over length
+max_length 6144: train kept 1594, skipped 3 over length
+```
+
+The first attempted full-parameter run should therefore use `4096` as the
+initial sequence length. If 24 GB memory is too tight with AdamW, fall back to
+`3072` or add chunking instead of silently training on the heavily truncated
+`2048` subset.
 
 Important detail: this Qwen checkpoint has padded vocabulary matrices that are
 larger than the tokenizer length. The resize helper therefore only grows the
@@ -104,7 +120,15 @@ dataset_weight
 total_grid
 dataset
 split
+normalization
+original
 ```
+
+The training fields are C-centered. `abc_melody`, `key`, `chords`, `harmony`,
+and `harmony_tokens` have already been transposed so the source tonic is C.
+The original source-key version is preserved in `original`, and
+`normalization.transpose_semitones` records the reversible shift needed to map
+generated roots back to the source key.
 
 The prompt is built from the ABC only:
 
@@ -244,7 +268,7 @@ Default first run for the 24 GB RTX 4090:
 model: /root/autodl-tmp/models/qwen3-1.7b-base
 data_dir: /root/autodl-tmp/jazzarranger/data/processed
 output_dir: /root/autodl-tmp/jazzarranger/outputs/stage1-qwen3-1.7b-base-full
-max_length: 2048
+max_length: 4096
 per_device_train_batch_size: 1
 per_device_eval_batch_size: 1
 gradient_accumulation_steps: 16
@@ -274,7 +298,7 @@ PYTHONPATH=/root/autodl-tmp/jazzarranger /root/miniconda3/bin/python3 -m src.tra
   --model-name-or-path /root/autodl-tmp/models/qwen3-1.7b-base \
   --data-dir data/processed \
   --output-dir outputs/stage1-qwen3-1.7b-base-full \
-  --max-length 2048 \
+  --max-length 4096 \
   --per-device-train-batch-size 1 \
   --per-device-eval-batch-size 1 \
   --gradient-accumulation-steps 16 \

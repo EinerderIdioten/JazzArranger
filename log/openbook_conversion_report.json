@@ -12,6 +12,35 @@
     "train": 75,
     "val": 4
   },
+  "key_distribution": {
+    "C:maj": 88,
+    "C:min": 12
+  },
+  "source_key_distribution": {
+    "A#:maj": 7,
+    "A:min": 1,
+    "C:maj": 20,
+    "C:min": 3,
+    "D#:maj": 11,
+    "D:min": 1,
+    "E:min": 2,
+    "F:maj": 34,
+    "F:min": 4,
+    "G#:maj": 2,
+    "G:maj": 14,
+    "G:min": 1
+  },
+  "transpose_distribution": {
+    "-2": 1,
+    "-3": 11,
+    "-4": 2,
+    "-5": 38,
+    "0": 23,
+    "2": 7,
+    "3": 1,
+    "4": 2,
+    "5": 15
+  },
   "quality_distribution": {
     "aug": 1,
     "dim": 130,
@@ -24,18 +53,18 @@
     "sus4": 3
   },
   "root_distribution": {
-    "A": 366,
-    "A#": 323,
-    "B": 142,
-    "C": 534,
-    "C#": 101,
-    "D": 477,
-    "D#": 254,
-    "E": 231,
-    "F": 474,
-    "F#": 87,
-    "G": 555,
-    "G#": 119
+    "A": 414,
+    "A#": 110,
+    "B": 124,
+    "C": 736,
+    "C#": 75,
+    "D": 648,
+    "D#": 158,
+    "E": 321,
+    "F": 303,
+    "F#": 79,
+    "G": 608,
+    "G#": 87
   },
   "conversion_stats": {
     "converted": 100,
