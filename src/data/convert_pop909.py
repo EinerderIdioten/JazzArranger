@@ -24,6 +24,7 @@ from src.data.common import (
     write_json,
     write_jsonl,
 )
+from src.data.harmony_tokens import chord_spans_to_tokenized_harmony, validate_tokenized_harmony_text
 
 
 DATASET_NAME = "POP909"
@@ -430,7 +431,8 @@ def convert_song(song_dir: Path) -> tuple[list[dict], list[dict]]:
             bar_grid=bar_grid,
         )
         harmony = chord_spans_to_harmony(spans)
-        harmony_errors = validate_harmony_text(harmony)
+        harmony_tokens = chord_spans_to_tokenized_harmony(spans)
+        harmony_errors = validate_harmony_text(harmony) + validate_tokenized_harmony_text(harmony_tokens)
         if harmony_errors:
             failures.append(
                 {
@@ -456,6 +458,7 @@ def convert_song(song_dir: Path) -> tuple[list[dict], list[dict]]:
                 "total_grid": total_grid,
                 "chords": [span.to_json() for span in spans],
                 "harmony": harmony,
+                "harmony_tokens": harmony_tokens,
                 "metadata": {
                     "song_id": song_id,
                     "segment_index": idx,

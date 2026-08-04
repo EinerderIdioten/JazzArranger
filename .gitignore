@@ -1,5 +1,6 @@
 /data/downloads/
 /data/raw/
+/outputs/
 .DS_Store
 __pycache__/
 *.pyc

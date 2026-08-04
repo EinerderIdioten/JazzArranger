@@ -23,6 +23,7 @@ from src.data.common import (
     write_json,
     write_jsonl,
 )
+from src.data.harmony_tokens import chord_spans_to_tokenized_harmony, validate_tokenized_harmony_text
 
 
 DATASET_NAME = "OpenBook"
@@ -482,7 +483,8 @@ def convert_file(path: Path) -> tuple[list[dict], list[dict]]:
             bar_grid=bar_grid,
         )
         harmony = chord_spans_to_harmony(rebased_spans)
-        harmony_errors = validate_harmony_text(harmony)
+        harmony_tokens = chord_spans_to_tokenized_harmony(rebased_spans)
+        harmony_errors = validate_harmony_text(harmony) + validate_tokenized_harmony_text(harmony_tokens)
         if harmony_errors:
             failures.append(
                 {
@@ -509,6 +511,7 @@ def convert_file(path: Path) -> tuple[list[dict], list[dict]]:
                 "total_grid": total_grid,
                 "chords": [span.to_json() for span in rebased_spans],
                 "harmony": harmony,
+                "harmony_tokens": harmony_tokens,
                 "metadata": {
                     "source": "src/openbook",
                     "version": version,

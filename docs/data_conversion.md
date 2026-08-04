@@ -21,9 +21,13 @@ Each record uses the stage-one schema:
   "chords": [
     {"start": 0, "end": 16, "root": "C", "quality": "maj", "raw": "0_M"}
   ],
-  "harmony": "<HARMONY>\n@0-16 C:maj\n</HARMONY>"
+  "harmony": "<HARMONY>\n@0-16 C:maj\n</HARMONY>",
+  "harmony_tokens": "<HARMONY>\n<SPAN> @0-16 <R_C> <Q_MAJ> </SPAN>\n</HARMONY>"
 }
 ```
+
+`harmony` is kept for readable inspection. `harmony_tokens` is the supervised
+training target used after tokenizer expansion.
 
 ## Dataset Order
 

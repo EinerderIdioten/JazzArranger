@@ -20,6 +20,7 @@ from src.data.common import (
     write_json,
     write_jsonl,
 )
+from src.data.harmony_tokens import chord_spans_to_tokenized_harmony, validate_tokenized_harmony_text
 
 
 DATASET_NAME = "HLSD"
@@ -144,7 +145,8 @@ def parse_hlsd_file(path: Path) -> tuple[dict | None, list[str]]:
         bar_grid=bar_grid,
     )
     harmony = chord_spans_to_harmony(chord_spans)
-    harmony_errors = validate_harmony_text(harmony)
+    harmony_tokens = chord_spans_to_tokenized_harmony(chord_spans)
+    harmony_errors = validate_harmony_text(harmony) + validate_tokenized_harmony_text(harmony_tokens)
     if harmony_errors:
         return None, harmony_errors
 
@@ -161,6 +163,7 @@ def parse_hlsd_file(path: Path) -> tuple[dict | None, list[str]]:
         "total_grid": total_grid,
         "chords": [span.to_json() for span in chord_spans],
         "harmony": harmony,
+        "harmony_tokens": harmony_tokens,
         "metadata": metadata,
         "conversion": abc_stats,
     }
