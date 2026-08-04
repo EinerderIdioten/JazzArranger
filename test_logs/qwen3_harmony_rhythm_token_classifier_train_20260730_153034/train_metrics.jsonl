@@ -1,1 +1,0 @@
-{"epoch": 1, "global_step": 147, "train_loss": 0.4287250506077392, "val_loss": 0.32895239246664226, "val_strict_f1": 0.8029504741833509, "val_strict_precision": 0.7640374331550802, "val_strict_recall": 0.8460399703923019, "val_pred_positive_rate": 0.27606569477763426}

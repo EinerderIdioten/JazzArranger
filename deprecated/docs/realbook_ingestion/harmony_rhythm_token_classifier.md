@@ -152,6 +152,12 @@ Training mode uses `train` for optimization and `val` for epoch-level metrics.
 Evaluation mode uses `test` by default. The script writes `split_manifest.json`
 so the exact tune membership is auditable.
 
+For robustness checks, use `--split-mode kfold --num-folds 5 --fold-index N`.
+In k-fold mode the selected fold becomes `test`; validation is sampled from
+the remaining tunes with `--val-fraction`, and the rest is training data. This
+keeps the unit of separation at tune level while allowing every tune to serve
+as a held-out test tune across a full fold sweep.
+
 ## Script
 
 Use:
@@ -166,11 +172,21 @@ python src/realbook_ingestion/scripts/train_qwen3_harmony_rhythm_token_classifie
   --load-in-4bit \
   --gradient-checkpointing \
   --eval-split auto \
-  --epochs 1 \
+  --epochs 3 \
   --batch-size 1 \
   --grad-accum-steps 8 \
-  --save-artifacts
+  --log-every-steps 50 \
+  --save-best-artifacts
 ```
 
 Initial GPU plan is single-card QLoRA. Do not introduce DeepSpeed until the
 plain LoRA path is shown to be too slow or too memory-heavy.
+
+Recommended experiment order:
+
+1. Run one fixed-split 3-epoch training job with `--save-best-artifacts`.
+2. Evaluate `best_adapter` on the same fixed test split.
+3. Run a small multi-seed sweep, e.g. `20260730`, `20260731`, `20260732`, to
+   estimate split sensitivity.
+4. Run 5-fold CV only after the fixed-split run is stable enough to justify the
+   GPU time.

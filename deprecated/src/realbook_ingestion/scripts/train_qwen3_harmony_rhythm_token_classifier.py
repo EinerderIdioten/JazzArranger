@@ -38,6 +38,11 @@ def compact_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
 
 
+def append_jsonl(path: Path, row: dict[str, Any]) -> None:
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 def candidate_feature_rows(case: WindowCase) -> list[list[Any]]:
     return [
         [
@@ -264,10 +269,21 @@ def single_token_id(tokenizer: Any, token: str) -> int:
     return int(token_ids[0])
 
 
-def ensure_mask_token(tokenizer: Any, mask_token: str) -> tuple[int, bool]:
+def ensure_mask_token(
+    tokenizer: Any,
+    mask_token: str,
+    allow_add_mask_token: bool,
+) -> tuple[int, bool]:
     token_ids = tokenizer.encode(mask_token, add_special_tokens=False)
     if len(token_ids) == 1:
         return int(token_ids[0]), False
+
+    if not allow_add_mask_token:
+        raise ValueError(
+            f"Mask token {mask_token!r} must encode to one token, got {token_ids}. "
+            "Choose an existing one-token marker such as 'M', or pass "
+            "--allow-add-mask-token if you accept resizing embeddings."
+        )
 
     additional = list(getattr(tokenizer, "additional_special_tokens", []) or [])
     if mask_token not in additional:
@@ -301,7 +317,11 @@ def load_tokenizer_and_model(args: argparse.Namespace) -> tuple[Any, nn.Module, 
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
-    mask_token_id, mask_token_added = ensure_mask_token(tokenizer, args.mask_token)
+    mask_token_id, mask_token_added = ensure_mask_token(
+        tokenizer,
+        args.mask_token,
+        allow_add_mask_token=args.allow_add_mask_token,
+    )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -391,6 +411,9 @@ def split_cases_by_tune(
     val_fraction: float,
     test_fraction: float,
     seed: int,
+    split_mode: str,
+    num_folds: int,
+    fold_index: int,
 ) -> dict[str, list[WindowCase]]:
     by_tune: dict[str, list[WindowCase]] = {}
     for case in cases:
@@ -402,18 +425,32 @@ def split_cases_by_tune(
         raise ValueError("--val-fraction and --test-fraction must be non-negative and sum to < 1")
 
     tune_count = len(tune_ids)
-    test_count = max(1, round(tune_count * test_fraction)) if test_fraction > 0 and tune_ids else 0
-    val_count = max(1, round(tune_count * val_fraction)) if val_fraction > 0 and tune_ids else 0
-    if tune_count > 1 and val_count + test_count >= tune_count:
-        overflow = val_count + test_count - (tune_count - 1)
-        reduce_test = min(test_count, overflow)
-        test_count -= reduce_test
-        overflow -= reduce_test
-        val_count = max(0, val_count - overflow)
-
-    test_tunes = set(tune_ids[:test_count])
-    val_tunes = set(tune_ids[test_count : test_count + val_count])
-    train_tunes = set(tune_ids[test_count + val_count :])
+    if split_mode == "random":
+        test_count = max(1, round(tune_count * test_fraction)) if test_fraction > 0 and tune_ids else 0
+        val_count = max(1, round(tune_count * val_fraction)) if val_fraction > 0 and tune_ids else 0
+        if tune_count > 1 and val_count + test_count >= tune_count:
+            overflow = val_count + test_count - (tune_count - 1)
+            reduce_test = min(test_count, overflow)
+            test_count -= reduce_test
+            overflow -= reduce_test
+            val_count = max(0, val_count - overflow)
+        test_tunes = set(tune_ids[:test_count])
+        val_tunes = set(tune_ids[test_count : test_count + val_count])
+    elif split_mode == "kfold":
+        if num_folds < 2:
+            raise ValueError("--num-folds must be >= 2 for kfold split mode")
+        if fold_index < 0 or fold_index >= num_folds:
+            raise ValueError("--fold-index must satisfy 0 <= fold_index < num_folds")
+        folds = [tune_ids[index::num_folds] for index in range(num_folds)]
+        test_tunes = set(folds[fold_index])
+        remaining_tunes = [tune_id for tune_id in tune_ids if tune_id not in test_tunes]
+        val_count = max(1, round(len(remaining_tunes) * val_fraction)) if val_fraction > 0 else 0
+        if len(remaining_tunes) > 1 and val_count >= len(remaining_tunes):
+            val_count = len(remaining_tunes) - 1
+        val_tunes = set(remaining_tunes[:val_count])
+    else:
+        raise ValueError(f"Unsupported split mode: {split_mode}")
+    train_tunes = set(tune_ids) - test_tunes - val_tunes
     splits: dict[str, list[WindowCase]] = {"train": [], "val": [], "test": []}
     for tune_id in tune_ids:
         if tune_id in test_tunes:
@@ -430,9 +467,18 @@ def split_cases_by_tune(
     return splits
 
 
-def split_manifest_from_cases(splits: dict[str, list[WindowCase]]) -> dict[str, Any]:
+def split_manifest_from_cases(
+    splits: dict[str, list[WindowCase]],
+    args: argparse.Namespace,
+) -> dict[str, Any]:
     manifest: dict[str, Any] = {
         "unit": "source_file_tune",
+        "split_mode": args.split_mode,
+        "seed": args.seed,
+        "val_fraction": args.val_fraction,
+        "test_fraction": args.test_fraction,
+        "num_folds": args.num_folds,
+        "fold_index": args.fold_index,
         "splits": {},
     }
     for split_name, split_cases in splits.items():
@@ -670,6 +716,7 @@ def write_report(
             "- `scores.json`: aggregate metrics",
             "- `predictions.jsonl`: one row per evaluated window, with probabilities",
             "- `train_metrics.jsonl`: one row per epoch when `--mode train` is used",
+            "- `train_progress.jsonl`: periodic step-level loss and epoch validation events when `--mode train` is used",
         ]
     )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -680,6 +727,7 @@ def train_classifier(
     train_loader: DataLoader[dict[str, Any]],
     val_loader: DataLoader[dict[str, Any]],
     loss_fn: HarmonicRhythmLoss,
+    tokenizer: Any,
     args: argparse.Namespace,
     device: torch.device,
 ) -> list[dict[str, Any]]:
@@ -690,7 +738,12 @@ def train_classifier(
         weight_decay=args.weight_decay,
     )
     train_metrics: list[dict[str, Any]] = []
+    progress_path = args.output_dir / "train_progress.jsonl"
+    if progress_path.exists():
+        progress_path.unlink()
     global_step = 0
+    best_metric = -1.0
+    best_epoch: int | None = None
     for epoch in range(1, args.epochs + 1):
         classifier.train()
         running_loss = 0.0
@@ -705,8 +758,27 @@ def train_classifier(
             )
             loss = loss_fn(logits, batch["labels"], batch["label_mask"])
             (loss / args.grad_accum_steps).backward()
-            running_loss += float(loss.detach().cpu())
+            loss_value = float(loss.detach().cpu())
+            running_loss += loss_value
             steps += 1
+            if args.log_every_steps > 0 and (
+                step == 1 or step % args.log_every_steps == 0 or step == len(train_loader)
+            ):
+                progress_row = {
+                    "event": "train_step",
+                    "epoch": epoch,
+                    "step": step,
+                    "steps_per_epoch": len(train_loader),
+                    "global_step": global_step,
+                    "loss": loss_value,
+                    "running_train_loss": running_loss / steps,
+                }
+                append_jsonl(progress_path, progress_row)
+                print(
+                    f"epoch={epoch} step={step}/{len(train_loader)} "
+                    f"loss={loss_value:.4f} avg_loss={progress_row['running_train_loss']:.4f}",
+                    flush=True,
+                )
             if step % args.grad_accum_steps == 0 or step == len(train_loader):
                 if args.max_grad_norm > 0:
                     torch.nn.utils.clip_grad_norm_(classifier.parameters(), args.max_grad_norm)
@@ -730,12 +802,33 @@ def train_classifier(
             "val_strict_recall": val_scores["strict_all_samples"]["recall"],
             "val_pred_positive_rate": val_scores["label_distribution"]["pred_positive_rate"],
         }
+        current_metric = metric_row["val_strict_f1"]
+        if current_metric > best_metric:
+            best_metric = current_metric
+            best_epoch = epoch
+            metric_row["is_best"] = True
+            if args.save_best_artifacts:
+                save_model_artifacts(
+                    args.output_dir,
+                    tokenizer,
+                    classifier.model,
+                    adapter_only=args.use_lora or args.adapter_path is not None,
+                    artifact_name="best_adapter"
+                    if args.use_lora or args.adapter_path is not None
+                    else "best_model",
+                )
+        else:
+            metric_row["is_best"] = False
+        metric_row["best_epoch"] = best_epoch
+        metric_row["best_val_strict_f1"] = best_metric
         train_metrics.append(metric_row)
+        append_jsonl(progress_path, {"event": "val_epoch", **metric_row})
         print(
             f"epoch={epoch} train_loss={metric_row['train_loss']:.4f} "
             f"val_f1={metric_row['val_strict_f1']:.3f} "
             f"val_p={metric_row['val_strict_precision']:.3f} "
-            f"val_r={metric_row['val_strict_recall']:.3f}",
+            f"val_r={metric_row['val_strict_recall']:.3f} "
+            f"best_epoch={best_epoch}",
             flush=True,
         )
     return train_metrics
@@ -746,8 +839,9 @@ def save_model_artifacts(
     tokenizer: Any,
     model: nn.Module,
     adapter_only: bool,
+    artifact_name: str | None = None,
 ) -> None:
-    artifact_dir = output_dir / ("adapter" if adapter_only else "model")
+    artifact_dir = output_dir / (artifact_name or ("adapter" if adapter_only else "model"))
     artifact_dir.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(artifact_dir)
     tokenizer.save_pretrained(output_dir / "tokenizer")
@@ -763,6 +857,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--window-bars", type=int, default=4)
     parser.add_argument("--stride-bars", type=int, default=4)
     parser.add_argument("--seed", type=int, default=20260730)
+    parser.add_argument("--split-mode", choices=["random", "kfold"], default="random")
+    parser.add_argument("--num-folds", type=int, default=5)
+    parser.add_argument("--fold-index", type=int, default=0)
     parser.add_argument("--val-fraction", type=float, default=0.15)
     parser.add_argument("--test-fraction", type=float, default=0.10)
     parser.add_argument("--eval-split", choices=["auto", "val", "test", "all"], default="auto")
@@ -770,13 +867,22 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--max-eval-examples", type=int, default=120)
     parser.add_argument("--max-seq-length", type=int, default=4096)
     parser.add_argument("--slot-layout", choices=["target_tail", "inline"], default="target_tail")
-    parser.add_argument("--mask-token", default="[MASK]")
+    parser.add_argument("--mask-token", default="M")
     parser.add_argument("--mask-init-token", default="M")
+    parser.add_argument(
+        "--allow-add-mask-token",
+        action="store_true",
+        help=(
+            "Allow adding --mask-token to the tokenizer when it is not already one token. "
+            "This resizes embeddings and can make LoRA adapters much larger."
+        ),
+    )
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--eval-batch-size", type=int, default=1)
     parser.add_argument("--grad-accum-steps", type=int, default=8)
+    parser.add_argument("--log-every-steps", type=int, default=50)
     parser.add_argument("--learning-rate", type=float, default=2e-4)
     parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--max-grad-norm", type=float, default=1.0)
@@ -795,6 +901,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
     )
     parser.add_argument("--save-artifacts", action="store_true")
+    parser.add_argument("--save-best-artifacts", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -826,8 +933,11 @@ def main(argv: list[str]) -> int:
         val_fraction=args.val_fraction,
         test_fraction=args.test_fraction,
         seed=args.seed,
+        split_mode=args.split_mode,
+        num_folds=args.num_folds,
+        fold_index=args.fold_index,
     )
-    split_manifest = split_manifest_from_cases(splits)
+    split_manifest = split_manifest_from_cases(splits, args)
     train_cases = splits["train"]
     active_eval_split = args.eval_split
     if active_eval_split == "auto":
@@ -873,6 +983,7 @@ def main(argv: list[str]) -> int:
             train_loader=train_loader,
             val_loader=eval_loader,
             loss_fn=loss_fn,
+            tokenizer=tokenizer,
             args=args,
             device=device,
         )
@@ -882,6 +993,7 @@ def main(argv: list[str]) -> int:
                 tokenizer,
                 model,
                 adapter_only=args.use_lora or args.adapter_path is not None,
+                artifact_name=None,
             )
 
     scores, prediction_rows = evaluate_classifier(
@@ -905,6 +1017,9 @@ def main(argv: list[str]) -> int:
         "slot_layout": args.slot_layout,
         "threshold": args.threshold,
         "seed": args.seed,
+        "split_mode": args.split_mode,
+        "num_folds": args.num_folds,
+        "fold_index": args.fold_index,
         "val_fraction": args.val_fraction,
         "test_fraction": args.test_fraction,
         "eval_split": args.eval_split,
@@ -935,6 +1050,7 @@ def main(argv: list[str]) -> int:
             "batch_size": args.batch_size,
             "eval_batch_size": args.eval_batch_size,
             "grad_accum_steps": args.grad_accum_steps,
+            "log_every_steps": args.log_every_steps,
             "learning_rate": args.learning_rate,
             "weight_decay": args.weight_decay,
             "max_grad_norm": args.max_grad_norm,
@@ -947,6 +1063,7 @@ def main(argv: list[str]) -> int:
             "lora_dropout": args.lora_dropout,
             "lora_target_modules": [item.strip() for item in args.lora_target_modules.split(",")],
             "save_artifacts": args.save_artifacts,
+            "save_best_artifacts": args.save_best_artifacts,
         },
         "candidate_policy": {
             "name": "elastic_melody_backbone_v1",
