@@ -1,0 +1,1584 @@
+{
+  "dataset": "EMOPIA+",
+  "dataset_weight": 1.0,
+  "raw_root": "data/raw/emopia_plus/EMOPIA+",
+  "output_dir": "data/processed",
+  "total_files": 1071,
+  "converted_files": 879,
+  "failed_files": 192,
+  "split_counts": {
+    "test": 71,
+    "train": 713,
+    "val": 95
+  },
+  "quality_distribution": {
+    "aug": 184,
+    "dim": 293,
+    "dom7": 1103,
+    "hdim7": 117,
+    "maj": 3870,
+    "maj7": 2108,
+    "min": 2312,
+    "min7": 1983,
+    "sus2": 1356,
+    "sus4": 1041
+  },
+  "root_distribution": {
+    "A": 1390,
+    "A#": 1087,
+    "B": 900,
+    "C": 1472,
+    "C#": 1031,
+    "D": 1484,
+    "D#": 953,
+    "E": 1220,
+    "F": 1432,
+    "F#": 942,
+    "G": 1473,
+    "G#": 983
+  },
+  "conversion_stats": {
+    "contains_no_chord": 192,
+    "converted": 879,
+    "dropped_same_start_notes": 577,
+    "truncated_overlapping_notes": 289
+  },
+  "failures": [
+    {
+      "id": "Q1_2Z9SjI131jA_1",
+      "split": "train",
+      "song_id": "2Z9SjI131jA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_2Z9SjI131jA_7",
+      "split": "train",
+      "song_id": "2Z9SjI131jA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_3N2G21U7guk_6",
+      "split": "train",
+      "song_id": "3N2G21U7guk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_5NW0zDu6IYM_2",
+      "split": "train",
+      "song_id": "5NW0zDu6IYM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_6Uf9XBUD3wE_0",
+      "split": "train",
+      "song_id": "6Uf9XBUD3wE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_6kRPHamGDSo_3",
+      "split": "train",
+      "song_id": "6kRPHamGDSo",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_BGf5nCdzPOc_1",
+      "split": "train",
+      "song_id": "BGf5nCdzPOc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_GY3f6ckBVkA_0",
+      "split": "test",
+      "song_id": "GY3f6ckBVkA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_GY3f6ckBVkA_1",
+      "split": "test",
+      "song_id": "GY3f6ckBVkA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_GY3f6ckBVkA_3",
+      "split": "test",
+      "song_id": "GY3f6ckBVkA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_HY9vPoHbgaI_2",
+      "split": "train",
+      "song_id": "HY9vPoHbgaI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_J6X3rVU1H-c_2",
+      "split": "train",
+      "song_id": "J6X3rVU1H-c",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_JYVXM0qNQAg_0",
+      "split": "train",
+      "song_id": "JYVXM0qNQAg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_KxlqB3j0zys_1",
+      "split": "train",
+      "song_id": "KxlqB3j0zys",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_NGE9ynTJABg_0",
+      "split": "train",
+      "song_id": "NGE9ynTJABg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_PdwxeMPXOCk_1",
+      "split": "train",
+      "song_id": "PdwxeMPXOCk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_QwsQ8ejbMKg_1",
+      "split": "val",
+      "song_id": "QwsQ8ejbMKg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_RaUSISlnhKw_1",
+      "split": "train",
+      "song_id": "RaUSISlnhKw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_UOSlDydo94E_2",
+      "split": "train",
+      "song_id": "UOSlDydo94E",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_XC_SiJszQx0_3",
+      "split": "val",
+      "song_id": "XC_SiJszQx0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_Y5JcZQ0xg4Y_0",
+      "split": "train",
+      "song_id": "Y5JcZQ0xg4Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_Y5JcZQ0xg4Y_2",
+      "split": "train",
+      "song_id": "Y5JcZQ0xg4Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1__8v0MFBZoco_0",
+      "split": "train",
+      "song_id": "_8v0MFBZoco",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1__BK2o77sTc0_1",
+      "split": "val",
+      "song_id": "_BK2o77sTc0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_aYe-2Glruu4_3",
+      "split": "train",
+      "song_id": "aYe-2Glruu4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_aYe-2Glruu4_4",
+      "split": "train",
+      "song_id": "aYe-2Glruu4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_bQS8eAXAhyE_1",
+      "split": "train",
+      "song_id": "bQS8eAXAhyE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_bQS8eAXAhyE_2",
+      "split": "train",
+      "song_id": "bQS8eAXAhyE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_biROWEwkDQQ_3",
+      "split": "test",
+      "song_id": "biROWEwkDQQ",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_doM_LWo-74A_0",
+      "split": "test",
+      "song_id": "doM_LWo-74A",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_e838BE_MH6s_2",
+      "split": "test",
+      "song_id": "e838BE_MH6s",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_e838BE_MH6s_3",
+      "split": "test",
+      "song_id": "e838BE_MH6s",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_e8NQ2NH0nc8_0",
+      "split": "train",
+      "song_id": "e8NQ2NH0nc8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_eVMSeElk81Q_0",
+      "split": "val",
+      "song_id": "eVMSeElk81Q",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_fey-8bOR95E_0",
+      "split": "train",
+      "song_id": "fey-8bOR95E",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_fey-8bOR95E_2",
+      "split": "train",
+      "song_id": "fey-8bOR95E",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_gSwv8hZGM-s_0",
+      "split": "train",
+      "song_id": "gSwv8hZGM-s",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_o5AIp2Yc01M_0",
+      "split": "train",
+      "song_id": "o5AIp2Yc01M",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_r6laJv1-HMg_0",
+      "split": "val",
+      "song_id": "r6laJv1-HMg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_s6-SbDSZzEU_1",
+      "split": "train",
+      "song_id": "s6-SbDSZzEU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_vv6nrZ2myXw_4",
+      "split": "train",
+      "song_id": "vv6nrZ2myXw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_yFw_kO7DF-Y_2",
+      "split": "train",
+      "song_id": "yFw_kO7DF-Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_zHwJG8Rrx6c_3",
+      "split": "val",
+      "song_id": "zHwJG8Rrx6c",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q1_zmZHNy9T8Pg_0",
+      "split": "val",
+      "song_id": "zmZHNy9T8Pg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_--2B4d4lQhs_0",
+      "split": "train",
+      "song_id": "--2B4d4lQhs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_--2B4d4lQhs_1",
+      "split": "train",
+      "song_id": "--2B4d4lQhs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_-jJVb0xvbdg_0",
+      "split": "train",
+      "song_id": "-jJVb0xvbdg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_-jJVb0xvbdg_1",
+      "split": "train",
+      "song_id": "-jJVb0xvbdg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_08t73Qgjkt4_0",
+      "split": "train",
+      "song_id": "08t73Qgjkt4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_08t73Qgjkt4_1",
+      "split": "train",
+      "song_id": "08t73Qgjkt4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_0H4rq0L9OSw_0",
+      "split": "train",
+      "song_id": "0H4rq0L9OSw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_0H4rq0L9OSw_1",
+      "split": "train",
+      "song_id": "0H4rq0L9OSw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_0v2N1ROvEI0_0",
+      "split": "test",
+      "song_id": "0v2N1ROvEI0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_16OaOpfOPZ0_2",
+      "split": "train",
+      "song_id": "16OaOpfOPZ0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_16OaOpfOPZ0_3",
+      "split": "train",
+      "song_id": "16OaOpfOPZ0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_1Q3MoBFh6eU_1",
+      "split": "test",
+      "song_id": "1Q3MoBFh6eU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_1kny88W533Q_2",
+      "split": "train",
+      "song_id": "1kny88W533Q",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_38i12IPkL5c_0",
+      "split": "train",
+      "song_id": "38i12IPkL5c",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_5NW0zDu6IYM_0",
+      "split": "train",
+      "song_id": "5NW0zDu6IYM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_61EA0xRX8gE_3",
+      "split": "train",
+      "song_id": "61EA0xRX8gE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_7n32BtYb4d4_1",
+      "split": "train",
+      "song_id": "7n32BtYb4d4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_7n32BtYb4d4_2",
+      "split": "train",
+      "song_id": "7n32BtYb4d4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_8c7kcmsnf-s_0",
+      "split": "train",
+      "song_id": "8c7kcmsnf-s",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_9v2WSpn4FCw_3",
+      "split": "train",
+      "song_id": "9v2WSpn4FCw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_9v2WSpn4FCw_4",
+      "split": "train",
+      "song_id": "9v2WSpn4FCw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_9v2WSpn4FCw_6",
+      "split": "train",
+      "song_id": "9v2WSpn4FCw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_9v2WSpn4FCw_7",
+      "split": "train",
+      "song_id": "9v2WSpn4FCw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_9v2WSpn4FCw_8",
+      "split": "train",
+      "song_id": "9v2WSpn4FCw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_CxFXrYgdSSI_0",
+      "split": "test",
+      "song_id": "CxFXrYgdSSI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_CxFXrYgdSSI_1",
+      "split": "test",
+      "song_id": "CxFXrYgdSSI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_D-gDPh9ZpFk_0",
+      "split": "train",
+      "song_id": "D-gDPh9ZpFk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_GwdQliEv6Z0_0",
+      "split": "val",
+      "song_id": "GwdQliEv6Z0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_Ie5koh4qvJc_13",
+      "split": "val",
+      "song_id": "Ie5koh4qvJc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_JMt4m608s3k_0",
+      "split": "train",
+      "song_id": "JMt4m608s3k",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_JMt4m608s3k_2",
+      "split": "train",
+      "song_id": "JMt4m608s3k",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_JYVXM0qNQAg_1",
+      "split": "train",
+      "song_id": "JYVXM0qNQAg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_S7Bo4-NCEDk_0",
+      "split": "train",
+      "song_id": "S7Bo4-NCEDk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_S7Bo4-NCEDk_1",
+      "split": "train",
+      "song_id": "S7Bo4-NCEDk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_Uu-oRTRT6uQ_0",
+      "split": "train",
+      "song_id": "Uu-oRTRT6uQ",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_ZTrEoB8T9YA_2",
+      "split": "train",
+      "song_id": "ZTrEoB8T9YA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2__FVzelKlBFs_1",
+      "split": "val",
+      "song_id": "_FVzelKlBFs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2__FVzelKlBFs_2",
+      "split": "val",
+      "song_id": "_FVzelKlBFs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_b8HVQtIoBYU_0",
+      "split": "train",
+      "song_id": "b8HVQtIoBYU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_cm6E860vDjY_0",
+      "split": "train",
+      "song_id": "cm6E860vDjY",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_dtS02mrDMsM_2",
+      "split": "train",
+      "song_id": "dtS02mrDMsM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_epX33OVpkmA_0",
+      "split": "train",
+      "song_id": "epX33OVpkmA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_epX33OVpkmA_2",
+      "split": "train",
+      "song_id": "epX33OVpkmA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_ezoAduuCkUs_0",
+      "split": "train",
+      "song_id": "ezoAduuCkUs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_fuCxYrru2S4_2",
+      "split": "test",
+      "song_id": "fuCxYrru2S4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_ijfxkQPAQdE_2",
+      "split": "train",
+      "song_id": "ijfxkQPAQdE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_ivCNV47tsRw_0",
+      "split": "train",
+      "song_id": "ivCNV47tsRw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_jTPXwbDtIpA_2",
+      "split": "train",
+      "song_id": "jTPXwbDtIpA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_k-FNDbK6Qhg_0",
+      "split": "train",
+      "song_id": "k-FNDbK6Qhg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_k-FNDbK6Qhg_2",
+      "split": "train",
+      "song_id": "k-FNDbK6Qhg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_k4lT-sXg3iI_2",
+      "split": "train",
+      "song_id": "k4lT-sXg3iI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_kKFwiXKlhC8_0",
+      "split": "train",
+      "song_id": "kKFwiXKlhC8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_mlHheZbblT0_1",
+      "split": "train",
+      "song_id": "mlHheZbblT0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_pouxqiySdI8_0",
+      "split": "train",
+      "song_id": "pouxqiySdI8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_qlbazHayULg_0",
+      "split": "train",
+      "song_id": "qlbazHayULg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_qlbazHayULg_7",
+      "split": "train",
+      "song_id": "qlbazHayULg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_rEz0D3VohFA_2",
+      "split": "train",
+      "song_id": "rEz0D3VohFA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_sEQf5lcnj_o_0",
+      "split": "train",
+      "song_id": "sEQf5lcnj_o",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_sEQf5lcnj_o_3",
+      "split": "train",
+      "song_id": "sEQf5lcnj_o",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_snfsc7pEzlk_1",
+      "split": "train",
+      "song_id": "snfsc7pEzlk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q2_yhIncZ_Ue4E_0",
+      "split": "train",
+      "song_id": "yhIncZ_Ue4E",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_0wRQRwnQiqY_0",
+      "split": "train",
+      "song_id": "0wRQRwnQiqY",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_16OaOpfOPZ0_1",
+      "split": "train",
+      "song_id": "16OaOpfOPZ0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_2v6gJi03LlA_1",
+      "split": "train",
+      "song_id": "2v6gJi03LlA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_4Er-eFHSHA4_1",
+      "split": "train",
+      "song_id": "4Er-eFHSHA4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_4Er-eFHSHA4_2",
+      "split": "train",
+      "song_id": "4Er-eFHSHA4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_By3JCii1k3w_0",
+      "split": "train",
+      "song_id": "By3JCii1k3w",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_FOcdHIhI0_s_1",
+      "split": "val",
+      "song_id": "FOcdHIhI0_s",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_FUAK5TBaNY8_3",
+      "split": "train",
+      "song_id": "FUAK5TBaNY8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_H6_7DjsbROQ_2",
+      "split": "train",
+      "song_id": "H6_7DjsbROQ",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_Ie5koh4qvJc_14",
+      "split": "val",
+      "song_id": "Ie5koh4qvJc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_Ie5koh4qvJc_2",
+      "split": "val",
+      "song_id": "Ie5koh4qvJc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_Ie5koh4qvJc_3",
+      "split": "val",
+      "song_id": "Ie5koh4qvJc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_MbvPxCUMSek_0",
+      "split": "train",
+      "song_id": "MbvPxCUMSek",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_PLfFWFZflQU_1",
+      "split": "train",
+      "song_id": "PLfFWFZflQU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_PXOWy7NiZhk_1",
+      "split": "train",
+      "song_id": "PXOWy7NiZhk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_REq37pDAm3A_0",
+      "split": "train",
+      "song_id": "REq37pDAm3A",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_TonQX8XbvX8_0",
+      "split": "train",
+      "song_id": "TonQX8XbvX8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_TonQX8XbvX8_3",
+      "split": "train",
+      "song_id": "TonQX8XbvX8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_X1p8xcarVu0_0",
+      "split": "train",
+      "song_id": "X1p8xcarVu0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_X1p8xcarVu0_1",
+      "split": "train",
+      "song_id": "X1p8xcarVu0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_bbU31JLtlug_1",
+      "split": "train",
+      "song_id": "bbU31JLtlug",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_cCfEDTkuMvg_0",
+      "split": "train",
+      "song_id": "cCfEDTkuMvg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_g-yM0Lsp4lc_1",
+      "split": "train",
+      "song_id": "g-yM0Lsp4lc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_iRu9KQvbtVw_0",
+      "split": "train",
+      "song_id": "iRu9KQvbtVw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_nBao46YGZDg_0",
+      "split": "train",
+      "song_id": "nBao46YGZDg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_qRceKZtwRWA_1",
+      "split": "train",
+      "song_id": "qRceKZtwRWA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_uj3Gif77SYM_5",
+      "split": "train",
+      "song_id": "uj3Gif77SYM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_uj3Gif77SYM_6",
+      "split": "train",
+      "song_id": "uj3Gif77SYM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wS0RzrBL9UI_1",
+      "split": "train",
+      "song_id": "wS0RzrBL9UI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wS0RzrBL9UI_2",
+      "split": "train",
+      "song_id": "wS0RzrBL9UI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wqc8iqbDsGM_1",
+      "split": "train",
+      "song_id": "wqc8iqbDsGM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wqc8iqbDsGM_2",
+      "split": "train",
+      "song_id": "wqc8iqbDsGM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wqc8iqbDsGM_3",
+      "split": "train",
+      "song_id": "wqc8iqbDsGM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wqc8iqbDsGM_4",
+      "split": "train",
+      "song_id": "wqc8iqbDsGM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_wxXpvnmq_-E_0",
+      "split": "val",
+      "song_id": "wxXpvnmq_-E",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_xYZ8n8ULaNo_0",
+      "split": "train",
+      "song_id": "xYZ8n8ULaNo",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_yZGBxiNPu3k_1",
+      "split": "train",
+      "song_id": "yZGBxiNPu3k",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q3_zvWX_dwQPtU_0",
+      "split": "val",
+      "song_id": "zvWX_dwQPtU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_170KC2CbJ7Y_0",
+      "split": "train",
+      "song_id": "170KC2CbJ7Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_170KC2CbJ7Y_1",
+      "split": "train",
+      "song_id": "170KC2CbJ7Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_1fdxsFbnsX4_1",
+      "split": "val",
+      "song_id": "1fdxsFbnsX4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_1vjy9oMFa8c_0",
+      "split": "train",
+      "song_id": "1vjy9oMFa8c",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_22S3w4idugs_0",
+      "split": "test",
+      "song_id": "22S3w4idugs",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_2w5XkAt_3WU_0",
+      "split": "train",
+      "song_id": "2w5XkAt_3WU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_5J_zI7QE9W8_1",
+      "split": "train",
+      "song_id": "5J_zI7QE9W8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_7yW9c7t8Hq0_0",
+      "split": "train",
+      "song_id": "7yW9c7t8Hq0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_8TYY0qG-KOw_0",
+      "split": "train",
+      "song_id": "8TYY0qG-KOw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_B3aRl8iTEKw_1",
+      "split": "test",
+      "song_id": "B3aRl8iTEKw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_CkjAksZstEA_1",
+      "split": "train",
+      "song_id": "CkjAksZstEA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_DX1IK3z1w10_0",
+      "split": "train",
+      "song_id": "DX1IK3z1w10",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_Dw7M69CidJ8_2",
+      "split": "train",
+      "song_id": "Dw7M69CidJ8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_E6MARl3zjnQ_0",
+      "split": "train",
+      "song_id": "E6MARl3zjnQ",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_GbUV3TXUzeQ_0",
+      "split": "train",
+      "song_id": "GbUV3TXUzeQ",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_Gcbk0GPT3-g_0",
+      "split": "train",
+      "song_id": "Gcbk0GPT3-g",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_HQ8ISDX6PiI_1",
+      "split": "train",
+      "song_id": "HQ8ISDX6PiI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_I2MrA-o5H8I_1",
+      "split": "train",
+      "song_id": "I2MrA-o5H8I",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_JP3QKZlyQz4_2",
+      "split": "train",
+      "song_id": "JP3QKZlyQz4",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_JxSU49jFKwM_1",
+      "split": "train",
+      "song_id": "JxSU49jFKwM",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_KxlqB3j0zys_4",
+      "split": "train",
+      "song_id": "KxlqB3j0zys",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_Q49PWE0RJLY_0",
+      "split": "train",
+      "song_id": "Q49PWE0RJLY",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_QBJ6YYYpIyk_0",
+      "split": "train",
+      "song_id": "QBJ6YYYpIyk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_TOXg4-ZGb-g_1",
+      "split": "train",
+      "song_id": "TOXg4-ZGb-g",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_TOXg4-ZGb-g_2",
+      "split": "train",
+      "song_id": "TOXg4-ZGb-g",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_Tc684nD8CEA_1",
+      "split": "train",
+      "song_id": "Tc684nD8CEA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_Tjno89OVuRI_1",
+      "split": "train",
+      "song_id": "Tjno89OVuRI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_UaYYMRkHMYc_0",
+      "split": "train",
+      "song_id": "UaYYMRkHMYc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_UpHutdJvZMI_1",
+      "split": "train",
+      "song_id": "UpHutdJvZMI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_V3Y9L4UOcpk_1",
+      "split": "train",
+      "song_id": "V3Y9L4UOcpk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_VCSDjQxAJzc_0",
+      "split": "train",
+      "song_id": "VCSDjQxAJzc",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_XWk5XUEBXmg_0",
+      "split": "train",
+      "song_id": "XWk5XUEBXmg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_XWk5XUEBXmg_1",
+      "split": "train",
+      "song_id": "XWk5XUEBXmg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_cXxGBDgFCs8_0",
+      "split": "test",
+      "song_id": "cXxGBDgFCs8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_cXxGBDgFCs8_2",
+      "split": "test",
+      "song_id": "cXxGBDgFCs8",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_d_49EtXDMFE_2",
+      "split": "train",
+      "song_id": "d_49EtXDMFE",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_g15aRCHUJEI_2",
+      "split": "val",
+      "song_id": "g15aRCHUJEI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_heBmBQDWj-M_1",
+      "split": "train",
+      "song_id": "heBmBQDWj-M",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_j8Ir-ssM-AA_1",
+      "split": "train",
+      "song_id": "j8Ir-ssM-AA",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_jCLgDtk695I_1",
+      "split": "test",
+      "song_id": "jCLgDtk695I",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_k6aLLVX1D7Y_0",
+      "split": "train",
+      "song_id": "k6aLLVX1D7Y",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_kMHiU0fhWVw_1",
+      "split": "train",
+      "song_id": "kMHiU0fhWVw",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_kfYaGryaGzI_1",
+      "split": "train",
+      "song_id": "kfYaGryaGzI",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_lQCrA2TE-fo_1",
+      "split": "train",
+      "song_id": "lQCrA2TE-fo",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_nGkpcWNAxDU_0",
+      "split": "train",
+      "song_id": "nGkpcWNAxDU",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_pkz8OkWhwnk_1",
+      "split": "train",
+      "song_id": "pkz8OkWhwnk",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_rW1I58_lMEg_0",
+      "split": "train",
+      "song_id": "rW1I58_lMEg",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_wzSr6qR3Ra0_0",
+      "split": "train",
+      "song_id": "wzSr6qR3Ra0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    },
+    {
+      "id": "Q4_yC0fAQxGgr0_1",
+      "split": "train",
+      "song_id": "yC0fAQxGgr0",
+      "errors": [
+        "contains_no_chord"
+      ]
+    }
+  ]
+}

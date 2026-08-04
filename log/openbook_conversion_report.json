@@ -1,0 +1,598 @@
+{
+  "dataset": "OpenBook",
+  "dataset_weight": 0.0,
+  "raw_root": "data/raw/openbook/openbook-master",
+  "source_dir": "data/raw/openbook/openbook-master/src/openbook",
+  "output_dir": "data/processed",
+  "total_files": 155,
+  "converted_records": 100,
+  "failed_files_or_segments": 70,
+  "split_counts": {
+    "test": 21,
+    "train": 75,
+    "val": 4
+  },
+  "quality_distribution": {
+    "aug": 1,
+    "dim": 130,
+    "dom7": 1418,
+    "hdim7": 149,
+    "maj": 513,
+    "maj7": 306,
+    "min": 217,
+    "min7": 926,
+    "sus4": 3
+  },
+  "root_distribution": {
+    "A": 366,
+    "A#": 323,
+    "B": 142,
+    "C": 534,
+    "C#": 101,
+    "D": 477,
+    "D#": 254,
+    "E": 231,
+    "F": 474,
+    "F#": 87,
+    "G": 555,
+    "G#": 119
+  },
+  "conversion_stats": {
+    "converted": 100,
+    "dropped_same_start_notes": 0,
+    "missing_chord_voice_pair": 8,
+    "missing_notes": 62,
+    "truncated_overlapping_notes": 0,
+    "unsupported_tuplet": 62
+  },
+  "failures": [
+    {
+      "id": "500_miles_high.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "a_day_in_the_life_of_a_fool.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "a_fine_romance.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "a_night_in_tunisia.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "a_nightingale_sang_in_berkeley_square.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "afternoon_in_paris.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "all_of_me.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "all_or_nothing_at_all.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "all_the_things_you_are.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "alone_together.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "always.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "angel_eyes.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "au_privave.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "billies_bounce.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "blue_monk.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "blue_skies.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "blues_for_alice.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "bluesette.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "body_and_soul.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "cocktails_for_two.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "cry_me_a_river.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "donna_lee.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "dont_blame_me.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "doxy.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "easy_living.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "flamingo.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "glorias_step.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "green_dolphin_street.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "guilty.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "how_deep_is_the_ocean.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "i_concentrate_on_you.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "i_dont_want_to_set_the_world_on_fire.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "i_got_plenty_o_nuttin.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "i_love_you.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "if_you_could_see_me_now.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "ill_close_my_eyes.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "ill_never_smile_again.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "ill_remember_april.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "just_friends.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "lost_in_the_stars.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "love_for_sale.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "misty.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "my_one_and_only_love.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "nature_boy.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "nice_work_if_you_can_get_it.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "night_and_day.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "nows_the_time.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "once_i_loved.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "ornithology.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "polka_dots_and_moonbeams.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "prelude_to_a_kiss.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "quiet_nights_of_quiet_stars.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "red_sails_in_the_sunset.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "robbins_nest.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "round_midnight.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "somewhere_over_the_rainbow.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "stella_by_starlight.ly",
+      "version": "Real",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "stormy_weather.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "strange_fruit.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "summertime.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "take_five.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "the_girl_from_ipanema.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "the_masquerade_is_over.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "the_nearness_of_you.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "the_way_you_look_tonight.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "unforgettable.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "watermelon_man.ly",
+      "errors": [
+        "missing_chord_voice_pair"
+      ]
+    },
+    {
+      "id": "what_a_diffrence_a_day_made.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "what_a_wonderful_world.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    },
+    {
+      "id": "when_i_fall_in_love.ly",
+      "version": "Fake",
+      "errors": [
+        "unsupported_tuplet",
+        "missing_notes"
+      ]
+    }
+  ],
+  "notes": [
+    "OpenBook rows are emitted for manual audit with dataset_weight=0.0.",
+    "The parser is conservative and skips tuplets/grace-note files because timing would need LilyPond expansion."
+  ]
+}

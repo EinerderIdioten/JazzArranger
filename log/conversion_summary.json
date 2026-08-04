@@ -1,0 +1,178 @@
+{
+  "total_converted_records": 2075,
+  "datasets": [
+    {
+      "dataset": "EMOPIA+",
+      "dataset_weight": 1.0,
+      "total_files": 1071,
+      "converted": 879,
+      "failed": 192,
+      "split_counts": {
+        "test": 71,
+        "train": 713,
+        "val": 95
+      },
+      "quality_distribution": {
+        "aug": 184,
+        "dim": 293,
+        "dom7": 1103,
+        "hdim7": 117,
+        "maj": 3870,
+        "maj7": 2108,
+        "min": 2312,
+        "min7": 1983,
+        "sus2": 1356,
+        "sus4": 1041
+      },
+      "root_distribution": {
+        "A": 1390,
+        "A#": 1087,
+        "B": 900,
+        "C": 1472,
+        "C#": 1031,
+        "D": 1484,
+        "D#": 953,
+        "E": 1220,
+        "F": 1432,
+        "F#": 942,
+        "G": 1473,
+        "G#": 983
+      },
+      "conversion_stats": {
+        "contains_no_chord": 192,
+        "converted": 879,
+        "dropped_same_start_notes": 577,
+        "truncated_overlapping_notes": 289
+      }
+    },
+    {
+      "dataset": "HLSD",
+      "dataset_weight": 1.0,
+      "total_files": 20,
+      "converted": 11,
+      "failed": 9,
+      "split_counts": {
+        "train": 11
+      },
+      "quality_distribution": {
+        "dom7": 6,
+        "maj": 46,
+        "maj7": 5,
+        "min": 17,
+        "min7": 7,
+        "sus2": 10,
+        "sus4": 4
+      },
+      "root_distribution": {
+        "A": 11,
+        "A#": 4,
+        "B": 8,
+        "C": 14,
+        "C#": 12,
+        "D": 12,
+        "E": 8,
+        "F": 6,
+        "F#": 8,
+        "G": 10,
+        "G#": 2
+      },
+      "conversion_stats": {
+        "bad_coverage": 2,
+        "converted": 11,
+        "dropped_same_start_notes": 0,
+        "gap": 54,
+        "missing_melody": 5,
+        "truncated_overlapping_notes": 0
+      }
+    },
+    {
+      "dataset": "POP909",
+      "dataset_weight": 0.7,
+      "total_files": 909,
+      "converted": 1085,
+      "failed": 54,
+      "split_counts": {
+        "test": 107,
+        "train": 873,
+        "val": 105
+      },
+      "quality_distribution": {
+        "aug": 175,
+        "dim": 667,
+        "dom7": 1556,
+        "hdim7": 203,
+        "maj": 53760,
+        "maj7": 2988,
+        "min": 33511,
+        "min7": 4838,
+        "sus2": 5474,
+        "sus4": 3816
+      },
+      "root_distribution": {
+        "A": 9583,
+        "A#": 8374,
+        "B": 8344,
+        "C": 10745,
+        "C#": 7997,
+        "D": 9688,
+        "D#": 8212,
+        "E": 8816,
+        "F": 9043,
+        "F#": 7715,
+        "G": 10299,
+        "G#": 8172
+      },
+      "conversion_stats": {
+        "converted": 1085,
+        "dropped_same_start_notes": 1559,
+        "missing_notes": 54,
+        "truncated_overlapping_notes": 2699
+      }
+    },
+    {
+      "dataset": "OpenBook",
+      "dataset_weight": 0.0,
+      "total_files": 155,
+      "converted": 100,
+      "failed": 70,
+      "split_counts": {
+        "test": 21,
+        "train": 75,
+        "val": 4
+      },
+      "quality_distribution": {
+        "aug": 1,
+        "dim": 130,
+        "dom7": 1418,
+        "hdim7": 149,
+        "maj": 513,
+        "maj7": 306,
+        "min": 217,
+        "min7": 926,
+        "sus4": 3
+      },
+      "root_distribution": {
+        "A": 366,
+        "A#": 323,
+        "B": 142,
+        "C": 534,
+        "C#": 101,
+        "D": 477,
+        "D#": 254,
+        "E": 231,
+        "F": 474,
+        "F#": 87,
+        "G": 555,
+        "G#": 119
+      },
+      "conversion_stats": {
+        "converted": 100,
+        "dropped_same_start_notes": 0,
+        "missing_chord_voice_pair": 8,
+        "missing_notes": 62,
+        "truncated_overlapping_notes": 0,
+        "unsupported_tuplet": 62
+      }
+    }
+  ]
+}

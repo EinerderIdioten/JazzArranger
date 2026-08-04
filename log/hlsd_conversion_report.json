@@ -1,0 +1,150 @@
+{
+  "dataset": "HLSD",
+  "dataset_weight": 1.0,
+  "raw_root": "data/raw/hlsd/lead-sheet-dataset-master",
+  "output_dir": "data/processed",
+  "total_files": 20,
+  "converted_files": 11,
+  "failed_files": 9,
+  "split_counts": {
+    "train": 11
+  },
+  "quality_distribution": {
+    "dom7": 6,
+    "maj": 46,
+    "maj7": 5,
+    "min": 17,
+    "min7": 7,
+    "sus2": 10,
+    "sus4": 4
+  },
+  "root_distribution": {
+    "A": 11,
+    "A#": 4,
+    "B": 8,
+    "C": 14,
+    "C#": 12,
+    "D": 12,
+    "E": 8,
+    "F": 6,
+    "F#": 8,
+    "G": 10,
+    "G#": 2
+  },
+  "conversion_stats": {
+    "bad_coverage": 2,
+    "converted": 11,
+    "dropped_same_start_notes": 0,
+    "gap": 54,
+    "missing_melody": 5,
+    "truncated_overlapping_notes": 0
+  },
+  "failures": [
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xilent/choose-me/intro-and-verse_symbol_key.json",
+      "errors": [
+        "gap:144-192",
+        "bad_coverage:208!=256"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xilent/synthony/chorus_symbol_key.json",
+      "errors": [
+        "gap:92-96",
+        "gap:100-104",
+        "gap:108-112",
+        "gap:116-120",
+        "bad_coverage:124!=128"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxanaxx/got-u-under---spisek-jednego-remix/bridge_symbol_key.json",
+      "errors": [
+        "missing_melody"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxanaxx/story/intro-and-verse_symbol_key.json",
+      "errors": [
+        "gap:2-6",
+        "gap:8-12",
+        "gap:14-16",
+        "gap:18-22",
+        "gap:24-28",
+        "gap:30-32",
+        "gap:34-38",
+        "gap:40-44",
+        "gap:46-48",
+        "gap:50-54",
+        "gap:56-60",
+        "gap:62-64",
+        "gap:66-70",
+        "gap:72-76",
+        "gap:78-80",
+        "gap:82-86",
+        "gap:88-92",
+        "gap:94-96",
+        "gap:98-102",
+        "gap:104-108",
+        "gap:110-112",
+        "gap:114-118",
+        "gap:120-124",
+        "gap:126-128",
+        "gap:130-134",
+        "gap:136-140",
+        "gap:142-144",
+        "gap:146-150",
+        "gap:152-156",
+        "gap:158-160",
+        "gap:162-166",
+        "gap:168-172",
+        "gap:174-176",
+        "gap:178-182",
+        "gap:184-188",
+        "gap:190-192",
+        "gap:194-198",
+        "gap:200-204",
+        "gap:206-208",
+        "gap:210-214",
+        "gap:216-220",
+        "gap:222-224",
+        "gap:226-230",
+        "gap:232-236",
+        "gap:238-240",
+        "gap:242-246",
+        "gap:248-252",
+        "gap:254-256"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxanaxx/story/pre-chorus-and-chorus_symbol_key.json",
+      "errors": [
+        "gap:112-128"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxxtentacion/orlando/chorus_symbol_key.json",
+      "errors": [
+        "missing_melody"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxxtentacion/orlando/intro_symbol_key.json",
+      "errors": [
+        "missing_melody"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xxxtentacion/revenge/intro_symbol_key.json",
+      "errors": [
+        "missing_melody"
+      ]
+    },
+    {
+      "source_path": "/Users/4paradigm/Documents/repos/jazzarranger/data/raw/hlsd/lead-sheet-dataset-master/datasets/event/x/xyconstant/white-noise/chorus_symbol_key.json",
+      "errors": [
+        "missing_melody"
+      ]
+    }
+  ]
+}
