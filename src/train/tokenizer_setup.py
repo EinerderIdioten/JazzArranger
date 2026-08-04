@@ -56,8 +56,14 @@ def configure_tokenizer(tokenizer) -> int:
 
 
 def resize_model_for_tokenizer(model, tokenizer) -> None:
-    if model.get_input_embeddings().num_embeddings != len(tokenizer):
-        model.resize_token_embeddings(len(tokenizer))
+    tokenizer_size = len(tokenizer)
+    input_size = model.get_input_embeddings().num_embeddings
+    output_embeddings = model.get_output_embeddings()
+    output_size = output_embeddings.weight.shape[0] if output_embeddings is not None else input_size
+    # Some checkpoints pad vocab matrices beyond tokenizer length. Added token ids can
+    # reuse those rows, so only grow the model and never shrink reserved rows.
+    if min(input_size, output_size) < tokenizer_size:
+        model.resize_token_embeddings(tokenizer_size)
 
 
 def main() -> None:
