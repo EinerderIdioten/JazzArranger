@@ -170,7 +170,6 @@ def main() -> None:
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         data_collator=Stage1DataCollator(tokenizer),
-        tokenizer=tokenizer,
     )
     trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
     trainer.save_model(args.output_dir)
