@@ -21,7 +21,7 @@ v3 的主要变化是把训练从 v2 的短 smoke test 扩大到更正式的 roo
 
 v3 的结论不是“训练链路坏了”，而是：
 
-1. 模型已经摆脱了纯 all-C collapse，balanced accuracy 明显高于 \(1/12\) 的随机基线。
+1. 模型已经摆脱了纯 all-C collapse，balanced accuracy 明显高于 $1/12$ 的随机基线。
 2. 但当前 recipe 仍然明显偏向 `<R_C>`，并且 natural accuracy 只比 always-C baseline 略高。
 3. 继续原样把 v3 跑到 2000 或 5000 updates 不够稳，应该先进入 v4 修正 sampling、mask quota、visible context shortcut 和 root-only loss 设计。
 
@@ -35,14 +35,14 @@ v3 的结论不是“训练链路坏了”，而是：
 Natural validation 的 always-C baseline 约为：
 
 $$
-\operatorname{Acc}_{\text{always-C}}
+\mathrm{Acc}_{\mathrm{alwaysC}}
 =
-\frac{N_{\text{gold }R_C}}{N}
+\frac{N_{R_C}}{N}
 =
 21.57\%
 $$
 
-而 v3 natural root accuracy 为 \(22.43\%\)，净提升只有约 \(0.86\) 个百分点。因此 Stage 2 的 ABC-only full harmony generation 仍应暂停，先解决 Stage 1A 的 root 判别稳定性。
+而 v3 natural root accuracy 为 $22.43\%$，净提升只有约 $0.86$ 个百分点。因此 Stage 2 的 ABC-only full harmony generation 仍应暂停，先解决 Stage 1A 的 root 判别稳定性。
 
 ## 2. 当前训练目标
 
@@ -86,13 +86,13 @@ Stage 1A 的目的不是最终部署，而是短 curriculum：先确认模型可
 
 当前处理后的主训练数据已经 C-centered。也就是说 melody 和 chord root 是同步规约的，不存在“只规约 chord、melody 仍在原调”的问题。
 
-规约公式为：若原调 tonic 的 pitch-class index 为 \(k\)，规约到 C 的平移量为：
+规约公式为：若原调 tonic 的 pitch-class index 为 $k$，规约到 C 的平移量为：
 
 $$
 \tau = -k \pmod{12}
 $$
 
-对 melody pitch \(p\) 和 chord root pitch-class \(r\)，同步平移：
+对 melody pitch $p$ 和 chord root pitch-class $r$，同步平移：
 
 $$
 p' = p + \tau
@@ -167,28 +167,29 @@ flowchart TD
 
 设：
 
-- \(X_b\)：第 \(b\) 个样本的 ABC melody；
-- \(B_b\)：gold span 边界；
-- \(Q_b\)：visible quality；
-- \(R_{b,\neg i}\)：未遮挡 root context；
-- \(\mathcal{M}_b\)：第 \(b\) 个样本中被遮挡的 root 位置；
-- \(r_{b,i}\)：第 \(i\) 个被遮挡位置的 gold root。
+- $X_b$：第 $b$ 个样本的 ABC melody；
+- $B_b$：gold span 边界；
+- $Q_b$：visible quality；
+- $R_{b,\neg i}$：未遮挡 root context；
+- $\mathcal{M}_b$：第 $b$ 个样本中被遮挡的 root 位置；
+- $r_{b,i}$：第 $i$ 个被遮挡位置的 gold root。
 
 Stage 1A 的目标为：
 
 $$
+\begin{aligned}
 \mathcal{L}_{R}
-=
+&=
 -\frac{1}{B}
 \sum_{b=1}^{B}
 \frac{1}{|\mathcal{M}_b|}
 \sum_{i\in\mathcal{M}_b}
-\log p_{\theta}
-\left(
+\log p_{\theta}\left(
 r_{b,i}
 \mid
 X_b,B_b,Q_b,R_{b,\neg i}
 \right)
+\end{aligned}
 $$
 
 v3 的工程实现中，每个 training example 只预测一个 answer root，因此通常有：
@@ -222,12 +223,10 @@ v3 采用部分参数训练：
 v2 的有效监督规模太小：
 
 $$
-400 \text{ updates}
-\times
-12 \text{ root targets/update}
-=
-4800 \text{ root targets}
+400 \times 12 = 4800
 $$
+
+也就是 400 个 optimizer updates，每个 update 有 12 个 root target，总计 4800 个 root target。
 
 每个 root 只有：
 
@@ -240,12 +239,10 @@ $$
 v3 将有效监督扩到：
 
 $$
-1000 \text{ updates}
-\times
-12 \text{ root targets/update}
-=
-12000 \text{ root targets}
+1000 \times 12 = 12000
 $$
+
+也就是 1000 个 optimizer updates，每个 update 有 12 个 root target，总计 12000 个 root target。
 
 每个 root：
 
@@ -402,8 +399,8 @@ v3 主要训练配置如下：
 | root-loss positions | 12000 |
 | max length | 4096 |
 | train last ratio | 0.50 |
-| learning rate | \(2\times 10^{-5}\) |
-| token learning rate | \(1\times 10^{-4}\) |
+| learning rate | $2\times 10^{-5}$ |
+| token learning rate | $1\times 10^{-4}$ |
 | precision | bf16 |
 | gradient checkpointing | enabled |
 | LoRA | disabled |
@@ -431,21 +428,19 @@ v3 使用两套 validation：
 Micro accuracy：
 
 $$
-\operatorname{Acc}_{\text{micro}}
+\mathrm{Acc}_{\mathrm{micro}}
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
-\mathbf{1}
-\left[
-\hat r_i = r_i
-\right]
+\mathbf{1}\left[\hat r_i = r_i\right]
 $$
 
 Macro accuracy：
 
 $$
-\operatorname{Acc}_{\text{macro}}
-=
+\begin{aligned}
+\mathrm{Acc}_{\mathrm{macro}}
+&=
 \frac{1}{|\mathcal{R}|}
 \sum_{r\in\mathcal{R}}
 \frac{
@@ -456,22 +451,23 @@ $$
 \sum_{i=1}^{N}
 \mathbf{1}\left[r_i=r\right]
 }
+\end{aligned}
 $$
 
 Top-3 accuracy：
 
 $$
-\operatorname{Acc}_{\text{top-3}}
-=
+\begin{aligned}
+\mathrm{Acc}_{\mathrm{top3}}
+&=
 \frac{1}{N}
 \sum_{i=1}^{N}
-\mathbf{1}
-\left[
-r_i \in \operatorname{Top3}
-\left(
-p_{\theta}(\cdot \mid x_i)
-\right)
+\mathbf{1}\left[
+r_i
+\in
+\mathrm{Top3}\left(p_{\theta}(\cdot \mid x_i)\right)
 \right]
+\end{aligned}
 $$
 
 预测分布熵：
@@ -479,13 +475,12 @@ $$
 $$
 H(\hat R)
 =
--
-\sum_{r\in\mathcal{R}}
+-\sum_{r\in\mathcal{R}}
 \hat p(r)
 \log \hat p(r)
 $$
 
-如果 \(H(\hat R)\) 明显低于 gold distribution entropy，且某个 root 的预测 share 远高于 gold share，通常说明模型在坍缩到低成本先验。
+如果 $H(\hat R)$ 明显低于 gold distribution entropy，且某个 root 的预测 share 远高于 gold share，通常说明模型在坍缩到低成本先验。
 
 ## 9. v3 结果
 
@@ -636,7 +631,7 @@ Natural validation 的 gold / pred root count：
 | `<R_Ab>` | 310 | 48 | -262 |
 | `<R_B>` | 87 | 24 | -63 |
 
-Natural validation 的核心问题是：模型把真实分布中 \(21.57\%\) 的 `<R_C>` 放大到 \(44.75\%\)，同时明显低估 `<R_A>`、`<R_Ab>`、`<R_Bb>`、`<R_E>` 等 root。
+Natural validation 的核心问题是：模型把真实分布中 $21.57\%$ 的 `<R_C>` 放大到 $44.75\%$，同时明显低估 `<R_A>`、`<R_Ab>`、`<R_Bb>`、`<R_E>` 等 root。
 
 ## 10. 与 v2 的对比
 
@@ -799,7 +794,7 @@ v4 可以增加两个输入版本：
 
 | 版本 | 做法 | 目的 |
 |---|---|---|
-| limited-window context | 只保留目标 span 附近 \(k\) 个 span | 防止模型背长程重复和弦。 |
+| limited-window context | 只保留目标 span 附近 $k$ 个 span | 防止模型背长程重复和弦。 |
 | no-neighbor-root context | 保留 boundary 和 quality，但相邻 root 也 mask 掉 | 强迫模型更多依赖 melody 与 quality。 |
 
 建议混合训练，而不是完全移除 context：
@@ -815,27 +810,20 @@ v4 可以增加两个输入版本：
 不改变最终输出格式，但在 Stage 1A 中额外加入 12-way root-only CE：
 
 $$
-\mathcal{L}_{\text{root-only}}
+\mathcal{L}_{\mathrm{rootOnly}}
 =
--
-\log
-\frac{
-\exp z_{r_i}
-}{
-\sum_{r'\in\mathcal{R}}
-\exp z_{r'}
-}
+-\log
+\frac{\exp z_{r_i}}{\sum_{r'\in\mathcal{R}}\exp z_{r'}}
 $$
 
 总损失：
 
 $$
-\mathcal{L}_{\text{v4}}
+\mathcal{L}_{\mathrm{v4}}
 =
-\mathcal{L}_{\text{LM}}
+\mathcal{L}_{\mathrm{LM}}
 +
-\lambda_R
-\mathcal{L}_{\text{root-only}}
+\lambda_R\mathcal{L}_{\mathrm{rootOnly}}
 $$
 
 建议先取：
@@ -912,4 +900,3 @@ v3 证明了方向有 signal，但 recipe 不够。
 | `outputs/stage1a-v3-root-20260805_154720/checkpoint-1000` | v3 训练结束 checkpoint。 |
 | `outputs/stage1a-v3-root-20260805_154720/balanced_val_metrics_200_per_root.json` | balanced validation 指标。 |
 | `outputs/stage1a-v3-root-20260805_154720/natural_val_metrics_5000.json` | natural validation 指标。 |
-
