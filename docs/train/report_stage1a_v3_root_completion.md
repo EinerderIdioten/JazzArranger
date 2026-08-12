@@ -34,13 +34,13 @@ v3 的结论不是“训练链路坏了”，而是：
 
 Natural validation 的 always-C baseline 约为：
 
-$$
+```math
 \mathrm{Acc}_{\mathrm{alwaysC}}
 =
 \frac{N_{R_C}}{N}
 =
 21.57\%
-$$
+```
 
 而 v3 natural root accuracy 为 $22.43\%$，净提升只有约 $0.86$ 个百分点。因此 Stage 2 的 ABC-only full harmony generation 仍应暂停，先解决 Stage 1A 的 root 判别稳定性。
 
@@ -88,19 +88,19 @@ Stage 1A 的目的不是最终部署，而是短 curriculum：先确认模型可
 
 规约公式为：若原调 tonic 的 pitch-class index 为 $k$，规约到 C 的平移量为：
 
-$$
+```math
 \tau = -k \pmod{12}
-$$
+```
 
 对 melody pitch $p$ 和 chord root pitch-class $r$，同步平移：
 
-$$
+```math
 p' = p + \tau
-$$
+```
 
-$$
+```math
 r' = (r + \tau) \bmod 12
-$$
+```
 
 span 边界与 quality 不变。
 
@@ -176,7 +176,7 @@ flowchart TD
 
 Stage 1A 的目标为：
 
-$$
+```math
 \begin{aligned}
 \mathcal{L}_{R}
 &=
@@ -190,13 +190,13 @@ r_{b,i}
 X_b,B_b,Q_b,R_{b,\neg i}
 \right)
 \end{aligned}
-$$
+```
 
 v3 的工程实现中，每个 training example 只预测一个 answer root，因此通常有：
 
-$$
+```math
 |\mathcal{M}_b| = 1
-$$
+```
 
 这意味着 v3 的有效监督量应按 root answer positions 计算，而不是按总 token 数或 task bank 行数计算。
 
@@ -222,33 +222,33 @@ v3 采用部分参数训练：
 
 v2 的有效监督规模太小：
 
-$$
+```math
 400 \times 12 = 4800
-$$
+```
 
 也就是 400 个 optimizer updates，每个 update 有 12 个 root target，总计 4800 个 root target。
 
 每个 root 只有：
 
-$$
+```math
 \frac{4800}{12} = 400
-$$
+```
 
 次明确梯度。这个规模足以验证 token、loss、label shift、梯度和模型表达能力可以工作，但不足以让 1.7B 模型泛化出稳定 root 判别。
 
 v3 将有效监督扩到：
 
-$$
+```math
 1000 \times 12 = 12000
-$$
+```
 
 也就是 1000 个 optimizer updates，每个 update 有 12 个 root target，总计 12000 个 root target。
 
 每个 root：
 
-$$
+```math
 \frac{12000}{12} = 1000
-$$
+```
 
 次监督。
 
@@ -427,17 +427,17 @@ v3 使用两套 validation：
 
 Micro accuracy：
 
-$$
+```math
 \mathrm{Acc}_{\mathrm{micro}}
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
 \mathbf{1}\left[\hat r_i = r_i\right]
-$$
+```
 
 Macro accuracy：
 
-$$
+```math
 \begin{aligned}
 \mathrm{Acc}_{\mathrm{macro}}
 &=
@@ -452,11 +452,11 @@ $$
 \mathbf{1}\left[r_i=r\right]
 }
 \end{aligned}
-$$
+```
 
 Top-3 accuracy：
 
-$$
+```math
 \begin{aligned}
 \mathrm{Acc}_{\mathrm{top3}}
 &=
@@ -468,17 +468,17 @@ r_i
 \mathrm{Top3}\left(p_{\theta}(\cdot \mid x_i)\right)
 \right]
 \end{aligned}
-$$
+```
 
 预测分布熵：
 
-$$
+```math
 H(\hat R)
 =
 -\sum_{r\in\mathcal{R}}
 \hat p(r)
 \log \hat p(r)
-$$
+```
 
 如果 $H(\hat R)$ 明显低于 gold distribution entropy，且某个 root 的预测 share 远高于 gold share，通常说明模型在坍缩到低成本先验。
 
@@ -689,15 +689,15 @@ v3 保证了每个 root 出现 1000 次，但没有保证每个 root 的条件�
 
 理想上，我们希望：
 
-$$
+```math
 p(x \mid r)
-$$
+```
 
 在 dataset、song、quality、mask type、bar position、span duration、visible context 上足够多样。但 v3 实际上只严格控制了：
 
-$$
+```math
 p(r)
-$$
+```
 
 这意味着模型仍可能学到：
 
@@ -731,19 +731,19 @@ subdominant-like context -> F
 
 当前训练仍是 causal LM 的 token-level CE，answer 位置对整个词表归一化：
 
-$$
+```math
 p_{\theta}(y_t \mid x)
 =
 \frac{\exp z_{y_t}}{\sum_{v\in\mathcal{V}}\exp z_v}
-$$
+```
 
 但 Stage 1A 真正关心的是 12 个 root token 之间的排序：
 
-$$
+```math
 p_{\theta}(r \mid x, r\in\mathcal{R})
 =
 \frac{\exp z_r}{\sum_{r'\in\mathcal{R}}\exp z_{r'}}
-$$
+```
 
 full-vocab CE 可以训练 root token 生成，但它没有显式要求 12 个 root logits 之间校准得足够好。评估时我们只在 12 个 root logits 中取 argmax，这和训练归一化集合存在轻微目标不一致。
 
@@ -809,28 +809,28 @@ v4 可以增加两个输入版本：
 
 不改变最终输出格式，但在 Stage 1A 中额外加入 12-way root-only CE：
 
-$$
+```math
 \mathcal{L}_{\mathrm{rootOnly}}
 =
 -\log
 \frac{\exp z_{r_i}}{\sum_{r'\in\mathcal{R}}\exp z_{r'}}
-$$
+```
 
 总损失：
 
-$$
+```math
 \mathcal{L}_{\mathrm{v4}}
 =
 \mathcal{L}_{\mathrm{LM}}
 +
 \lambda_R\mathcal{L}_{\mathrm{rootOnly}}
-$$
+```
 
 建议先取：
 
-$$
+```math
 \lambda_R = 1.0
-$$
+```
 
 这样不会新增 head，也不改变 causal LM 的生成形式，只是让 Stage 1A 的优化目标更贴近 root 评估目标。
 
