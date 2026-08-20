@@ -43,15 +43,13 @@ melody + candidate harmony + reference harmony -> structured validation report
 
 ### 3.1 要做
 
-验证器第一版只做离线评估，不参与训练：
+验证器第一版只做离线评估，不参与训练。它不是一个单一函数，而是 5 个模块串起来：
 
 ```text
-reference harmony
-candidate harmony
-melody / bars / optional phrase metadata
+raw reference / candidate / melody
         |
         v
-formal validator
+Normalizer -> ReferenceChecker -> HarmonyParser -> Comparator -> BatchReporter
         |
         v
 JSON metrics + error tags + bar-level diagnostics
@@ -336,7 +334,15 @@ evals/phase1_harmony_validator_manual_tags.json
 
 ### V1：无语法 baseline validator
 
-先不接 PCFG/PACFG，只做 deterministic metrics：
+先不接 PCFG/PACFG，只做强规则 validator 基础版。这里的 V1 就是：
+
+- `Normalizer`
+- `ReferenceChecker`
+- `HarmonyParser` 的最小规则集
+- `Comparator` 的 root / quality / rhythm / melody-fit 距离
+- `BatchReporter`
+
+先跑 deterministic metrics：
 
 1. root / form / rich chord coverage；
 2. chord-count 和 onset F1；
@@ -523,7 +529,261 @@ local key drift 仍严重
 先把形式化工具做成可验证的 critic，再考虑让它影响生成。
 ```
 
-## 12. 参考资料与使用方式
+## 12. 具体构造（v1 实施版）
+
+### 12.1 模块拆分
+
+| 模块 | 输入 | 输出 | 职责 |
+|---|---|---|---|
+| `Normalizer` | raw chord strings、raw spans、meter、bar grid | normalized chord events | 规范化符号、别名、切分、拍号与小节对齐。 |
+| `ReferenceChecker` | normalized reference | reference sanity report | 检查 reference 是否可作为稳定监督。 |
+| `HarmonyParser` | normalized chord stream + optional melody + optional form | IR、top-k parse、confidence | 只做强规则/可回归解析，不做 learned judge。 |
+| `Comparator` | ref IR + cand IR + melody | distances、tags、bar diagnostics | 在统一表示上计算距离并贴错误标签。 |
+| `BatchReporter` | batch comparison outputs | aggregates、worst cases、diffs | 聚合一批样本，输出系统性分布与回归结果。 |
+
+### 12.2 统一中间表示
+
+一切比较都基于统一中间表示，不直接比原始 chord string。
+
+#### `ChordEvent`
+
+最小字段建议：
+
+```json
+{
+  "root": "G",
+  "quality_family": "dom",
+  "extensions": ["9", "13"],
+  "alterations": ["b9"],
+  "bass": "D",
+  "duration_span": [2.0, 4.0],
+  "bar_index": 12,
+  "beat_range": [1.0, 3.0],
+  "function_role": "D",
+  "local_key": "C:maj",
+  "cadential_role": "cadence",
+  "parse_confidence": 0.91
+}
+```
+
+#### `Chunk`
+
+`Chunk` 是局部进行单元，用来表达比单和弦更高一层的结构：
+
+- `ii-V-I`
+- `backdoor`
+- `turnaround`
+- `tonic_prolongation`
+- `dominant_preparation`
+
+#### `Tree`
+
+`Tree` 只负责 phrase / section / cadence 级 skeleton：
+
+- skeleton vs elaboration
+- dominant-to-tonic 是否保留
+- 平行乐句的功能锚点是否对齐
+
+不把每个细节都树化。
+
+### 12.3 Parser 的具体输出
+
+`HarmonyParser` 第一版输出：
+
+| 输出 | 含义 |
+|---|---|
+| normalized chord stream | 规范化后的 chord events。 |
+| harmonic role | `tonic / predominant / dominant / other / ambiguous`。 |
+| local key region | 当前局部调性中心，允许 top-k。 |
+| cadence / turnaround / substitution pattern | 终止式、回转、替代模式。 |
+| parse confidence | 解析置信度。 |
+
+### 12.4 距离函数
+
+validator 的核心不是 exact match，而是分层 harmony distance。
+
+单和弦距离定义为：
+
+```math
+d_{event} = w_r d_r + w_q d_q + w_x d_x + w_b d_b + w_f d_f + w_m d_m
+```
+
+其中：
+
+- `d_r`：root distance
+- `d_q`：quality-family distance
+- `d_x`：extension / alteration distance
+- `d_b`：bass / inversion distance
+- `d_f`：local functional distance
+- `d_m`：melody compatibility delta
+
+#### root distance
+
+不是简单同根 / 不同根，而是结合：
+
+- pitch-class 环距离
+- 五度圈邻近性
+- 功能邻近性
+- 三全音替代可接受性
+
+#### quality-family distance
+
+quality 不做平铺 one-hot，而做 family：
+
+| family | 例子 |
+|---|---|
+| `maj` | `maj`, `maj7`, `6` |
+| `min` | `min`, `min7`, `min9` |
+| `dom` | `7`, `9`, `11`, `13`, `7b9`, `7#9`, `7alt` |
+| `hdim` | `m7b5` |
+| `dim` | `dim`, `dim7` |
+| `sus` | `sus2`, `sus4`, `7sus` |
+| `slash` | `F/A`, `Dm/F` |
+| `other` | `NC`, `other` |
+
+同 family 低罚，不同 family 高罚。
+
+#### extension / alteration distance
+
+默认是小罚项，但如果 alteration 改变了核心功能，就放大惩罚。
+
+#### bass / inversion distance
+
+slash bass 不能默认忽略，因为它常常承载 voice-leading 和功能线索。
+
+#### functional distance
+
+这是最重要的一层之一。它依赖局部上下文，不是单个 chord label。
+
+#### melody-fit distance
+
+强拍长音与 chord tones / accepted tensions 的兼容关系单独计入。
+
+### 12.5 序列和小节级距离
+
+单和弦距离还不够，还要做 bar-level alignment：
+
+```math
+d_{bar} = \min_{\pi \in \text{alignments}} \sum_{(i,j)\in \pi} d_{event}(r_i, c_j) + \text{gap penalties}
+```
+
+gap penalty 分层：
+
+- 漏掉关键切分：重罚
+- 多出局部 embellishment：轻罚
+
+### 12.6 轨道距离 / 允许变换系统
+
+工程上不必强行追求严格群公理，更适合“带代价的允许变换系统”。
+
+可先开放的动作：
+
+- transposition normalization
+- tritone substitution
+- dominant-family variation
+- contextual substitution
+
+轨道距离写成：
+
+```math
+d_{orbit}(x,y) = \min_{a \in \langle \mathcal{A} \rangle} \mathrm{cost}(a : x \to y)
+```
+
+这里的重点是：
+
+- 变换显式
+- 代价可修订
+- 只在乐理上有意义时开放
+
+### 12.7 错误标签
+
+错误标签应从距离函数导出，而不是与分数系统平行独立。
+
+建议初版标签：
+
+- `UNPARSABLE_SYMBOL`
+- `BAR_DURATION_INCONSISTENT`
+- `REF_PARSE_LOW_CONFIDENCE`
+- `INTRA_BAR_SPLIT_MISSING`
+- `INTRA_BAR_SPLIT_EXTRA`
+- `ROOT_MISMATCH`
+- `FUNCTION_NEIGHBOR_CONFUSION`
+- `QUALITY_COLLAPSE_BASIC7`
+- `EXTENSION_DROPPED`
+- `ALTERATION_DROPPED`
+- `SLASH_BASS_INFORMATION_LOST`
+- `CADENTIAL_PATTERN_ERASED`
+- `LOCAL_TONAL_DRIFT`
+- `MELODY_STRONG_BEAT_CONFLICT`
+
+导出逻辑示例：
+
+- `d_q` 高，且 reference 属于 rich family、candidate 落入 safe family -> `QUALITY_COLLAPSE_BASIC7`
+- gap penalty 高，且 candidate 事件数少于 reference -> `INTRA_BAR_SPLIT_MISSING`
+- 连续若干小节 `d_f` 高 -> `LOCAL_TONAL_DRIFT`
+
+### 12.8 报告 schema
+
+建议 JSON 报告至少包含：
+
+```json
+{
+  "reference_sanity": {
+    "syntax": "pass",
+    "temporal": "pass",
+    "structural": "pass",
+    "parse": "low_confidence"
+  },
+  "summary": {
+    "score": 0.78,
+    "subscores": {
+      "event": 0.82,
+      "bar": 0.74,
+      "tree": 0.69,
+      "orbit": 0.83,
+      "melody_fit": 0.71,
+      "rhythm_align": 0.76
+    }
+  },
+  "error_tags": ["LOCAL_TONAL_DRIFT"],
+  "bar_diagnostics": [],
+  "parse_trace": [],
+  "alignment_trace": []
+}
+```
+
+### 12.9 v1 / v1.5 / v2 边界
+
+#### v1
+
+实现：
+
+- `Normalizer`
+- `ReferenceChecker`
+- root / quality / gap / melody-fit 距离
+- bar-level alignment
+- 第一批错误标签
+- batch regression report
+
+#### v1.5
+
+加入：
+
+- extension / bass / local function 距离
+- `Chunk`
+- 弱树结构
+- contextual substitution 表
+
+#### v2
+
+加入：
+
+- tree edit distance
+- 更正式的 orbit distance
+- section / form-aware consistency
+- reward adapter（仅在以后需要 RL 时启用）
+
+## 13. 参考资料与使用方式
 
 | 资料 | 本计划中的用途 |
 |---|---|
