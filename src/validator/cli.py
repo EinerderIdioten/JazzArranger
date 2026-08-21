@@ -10,6 +10,7 @@ from typing import Any, Iterable
 from .diagnostics import Comparator, ReferenceChecker
 from .normalize import Normalizer
 from .reporting import BatchReporter
+from .review import DEFAULT_REVIEW_TAGS, write_review_markdown
 
 
 def _split_fields(value: str | None) -> tuple[str, ...] | None:
@@ -50,6 +51,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
     add_common(subparsers.add_parser("inspect", help="Check reference harmonies only."))
     add_common(subparsers.add_parser("compare", help="Compare candidate harmonies against reference."))
+    review = subparsers.add_parser("review", help="Render validator JSONL results into Markdown for manual calibration.")
+    review.add_argument("input", type=Path, help="Validator result JSONL produced by compare.")
+    review.add_argument("--source-jsonl", type=Path, help="Optional source JSONL containing reference_chords/candidate_chords.")
+    review.add_argument("--output-md", type=Path, default=Path("outputs/validator/review_cases.md"))
+    review.add_argument("--worst-count", type=int, default=20)
+    review.add_argument("--tag-count", type=int, default=10)
+    review.add_argument("--no-tag-count", type=int, default=10)
+    review.add_argument("--max-per-title", type=int, default=6)
+    review.add_argument(
+        "--tags",
+        default=",".join(DEFAULT_REVIEW_TAGS),
+        help="Comma-separated tags to sample for calibration.",
+    )
     return parser
 
 
@@ -97,6 +111,19 @@ def _load_results(args: argparse.Namespace) -> list:
 def main(argv: list[str] | None = None) -> None:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    if args.command == "review":
+        summary = write_review_markdown(
+            result_jsonl=args.input,
+            source_jsonl=args.source_jsonl,
+            output_md=args.output_md,
+            worst_count=args.worst_count,
+            tag_count=args.tag_count,
+            no_tag_count=args.no_tag_count,
+            max_per_title=args.max_per_title,
+            tags=_split_fields(args.tags) or DEFAULT_REVIEW_TAGS,
+        )
+        print(json.dumps(summary, indent=2, ensure_ascii=False))
+        return
     results = _load_results(args)
     reporter = BatchReporter()
     summary = reporter.summarize(results, top_k=args.top_k)
