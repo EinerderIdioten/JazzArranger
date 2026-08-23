@@ -1,5 +1,18 @@
 # 总训练计划：ABC Melody-To-Harmony Labeling
 
+## 工作流入口
+
+本项目的日常推进必须遵守统一工作流规范：
+
+- [项目工作流总规范](../process/project_workflow.md)
+
+规则很简单：
+
+1. 先 research，再 planning，再 executing，最后 reviewing。
+2. 每轮实验必须有 manifest。
+3. 每次训练和 validator 运行都要写 summary。
+4. review 只看 plan、diff 和产物，不看口头印象。
+
 ## 1. 设计原则
 
 本项目当前阶段先把 **melody-to-harmony labeling** 做稳：输入标准化后的
