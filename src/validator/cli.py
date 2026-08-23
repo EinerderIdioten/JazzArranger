@@ -7,6 +7,13 @@ import json
 from pathlib import Path
 from typing import Any, Iterable
 
+from src.experiment_manifest import (
+    experiment_manifest_summary,
+    load_experiment_manifest,
+    manifest_validator_section,
+    resolve_experiment_manifest_path,
+)
+
 from .diagnostics import Comparator, ReferenceChecker
 from .normalize import Normalizer
 from .reporting import BatchReporter
@@ -48,6 +55,7 @@ def _build_parser() -> argparse.ArgumentParser:
         subparser.add_argument("--reference-fields")
         subparser.add_argument("--candidate-fields")
         subparser.add_argument("--melody-field")
+        subparser.add_argument("--experiment-manifest", type=Path)
 
     add_common(subparsers.add_parser("inspect", help="Check reference harmonies only."))
     add_common(subparsers.add_parser("compare", help="Compare candidate harmonies against reference."))
@@ -58,7 +66,7 @@ def _build_parser() -> argparse.ArgumentParser:
     review.add_argument("--worst-count", type=int, default=20)
     review.add_argument("--tag-count", type=int, default=10)
     review.add_argument("--no-tag-count", type=int, default=10)
-    review.add_argument("--max-per-title", type=int, default=6)
+    review.add_argument("--max-per-title", type=int, default=2, help="Maximum windows kept per song case.")
     review.add_argument(
         "--tags",
         default=",".join(DEFAULT_REVIEW_TAGS),
@@ -78,13 +86,20 @@ def _resolve_output_paths(args: argparse.Namespace, default_name: str) -> tuple[
 
 
 def _load_results(args: argparse.Namespace) -> list:
+    manifest_path = resolve_experiment_manifest_path(args.experiment_manifest)
+    manifest = load_experiment_manifest(manifest_path)
+    validator_section = manifest_validator_section(manifest)
     default_normalizer = Normalizer()
-    reference_fields = _split_fields(args.reference_fields) or default_normalizer.reference_fields
-    candidate_fields = _split_fields(args.candidate_fields) or default_normalizer.candidate_fields
+    reference_fields = _split_fields(args.reference_fields) or tuple(
+        validator_section.get("reference_fields") or default_normalizer.reference_fields
+    )
+    candidate_fields = _split_fields(args.candidate_fields) or tuple(
+        validator_section.get("candidate_fields") or default_normalizer.candidate_fields
+    )
     normalizer = Normalizer(
         reference_fields=reference_fields,
         candidate_fields=candidate_fields,
-        melody_field=args.melody_field or "abc_melody",
+        melody_field=args.melody_field or validator_section.get("melody_field") or "abc_melody",
     )
     results = []
     rows = _iter_jsonl_rows(args.input)
@@ -127,6 +142,9 @@ def main(argv: list[str] | None = None) -> None:
     results = _load_results(args)
     reporter = BatchReporter()
     summary = reporter.summarize(results, top_k=args.top_k)
+    manifest_path = resolve_experiment_manifest_path(args.experiment_manifest)
+    manifest = load_experiment_manifest(manifest_path)
+    summary["experiment_manifest"] = experiment_manifest_summary(manifest_path, manifest)
     output_jsonl, output_json = _resolve_output_paths(args, args.command)
     reporter.write_results(results, output_jsonl, include_tree=args.include_tree)
     reporter.write_summary(summary, output_json)

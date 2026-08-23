@@ -1,0 +1,198 @@
+{
+  "manifest_name": "root_simple_v1",
+  "version": 1,
+  "status": "frozen",
+  "created_at": "2026-08-24",
+  "purpose": "Freeze the current root-simple melody-to-harmony experiment contract.",
+  "paths": {
+    "processed_data_dir": "data/processed",
+    "song_id_list_md": "evals/current_root_simple_v1_song_ids.md",
+    "song_id_list_sha256": "c8e7f7d160d2cd16f98042ab6336bca2bd90db92269356434f8ac82bd71b02d3",
+    "conversion_summary_json": "log/conversion_summary.json",
+    "conversion_summary_sha256": "da0dad05e3cf50518920055a97da569b4ec446e307a8d7e4566990b2863331f3"
+  },
+  "processing_policy": {
+    "key_normalization": "C-centered",
+    "retain_original_key": true,
+    "retain_transpose_semitones": true,
+    "root_only_task": true,
+    "quality_filter": [
+      "maj",
+      "min",
+      "dom7",
+      "maj7",
+      "min7",
+      "hdim7",
+      "dim",
+      "sus2",
+      "sus4"
+    ],
+    "openbook_weight": 0.0,
+    "hlsd_included": false
+  },
+  "training": {
+    "task": "root_completion_v2",
+    "splits": [
+      "train",
+      "val"
+    ],
+    "active_datasets": [
+      "EMOPIA+",
+      "POP909"
+    ],
+    "audit_datasets": [
+      "OpenBook"
+    ],
+    "excluded_datasets": [
+      "HLSD"
+    ],
+    "allowed_qualities": [
+      "maj",
+      "min",
+      "dom7",
+      "maj7",
+      "min7",
+      "hdim7",
+      "dim",
+      "sus2",
+      "sus4"
+    ],
+    "include_zero_weight": false,
+    "transpose_to_sampled_root": true,
+    "balanced_sampling": {
+      "updates_per_epoch": 400,
+      "examples_per_root_per_update": 1,
+      "balanced_eval_examples_per_root": 24,
+      "natural_eval_limit": 768,
+      "mask_recipe_weights": {
+        "single_internal": 0.45,
+        "cadential_center": 0.2,
+        "adjacent_double": 0.2,
+        "long_context_sparse": 0.15
+      }
+    },
+    "task_bank": {
+      "rows": 442711,
+      "by_mask_type": {
+        "adjacent_double": 214774,
+        "single_internal": 105613,
+        "long_context_sparse": 105604,
+        "cadential_center": 16720
+      }
+    }
+  },
+  "data_snapshot": {
+    "raw": [
+      {
+        "name": "EMOPIA+",
+        "entry": "data/raw/emopia_plus/EMOPIA+/REMI/lead_sheet/*.pkl + functional/lead_sheet/*.pkl + split/*_SL.csv",
+        "raw_rows_or_files": 1071,
+        "raw_unique_song_ids": 387
+      },
+      {
+        "name": "POP909",
+        "entry": "data/raw/pop909/POP909/<song_id>/ + index.xlsx",
+        "raw_rows_or_files": 909,
+        "raw_unique_song_ids": 909
+      },
+      {
+        "name": "OpenBook",
+        "entry": "data/raw/openbook/openbook-master/src/openbook/*.ly.mako",
+        "raw_rows_or_files": 155,
+        "raw_unique_song_ids": null
+      },
+      {
+        "name": "HLSD",
+        "entry": "data/raw/hlsd/lead-sheet-dataset-master/datasets/event/*_symbol_key.json",
+        "raw_rows_or_files": 20,
+        "raw_unique_song_ids": null
+      }
+    ],
+    "processed": [
+      {
+        "name": "EMOPIA+",
+        "processed_rows": 879,
+        "processed_unique_song_ids": 372,
+        "split_rows": {
+          "train": 713,
+          "val": 95,
+          "test": 71
+        }
+      },
+      {
+        "name": "POP909",
+        "processed_rows": 1085,
+        "processed_unique_song_ids": 909,
+        "split_rows": {
+          "train": 873,
+          "val": 105,
+          "test": 107
+        }
+      },
+      {
+        "name": "OpenBook",
+        "processed_rows": 100,
+        "processed_unique_song_ids": 85,
+        "split_rows": {
+          "train": 75,
+          "val": 4,
+          "test": 21
+        }
+      },
+      {
+        "name": "HLSD",
+        "processed_rows": 11,
+        "processed_unique_song_ids": 11,
+        "split_rows": {
+          "train": 11
+        }
+      }
+    ],
+    "current_root_simple_run": [
+      {
+        "name": "EMOPIA+",
+        "active_rows": 808,
+        "active_unique_song_ids": 341
+      },
+      {
+        "name": "POP909",
+        "active_rows": 978,
+        "active_unique_song_ids": 818
+      },
+      {
+        "name": "OpenBook",
+        "active_rows": 79,
+        "active_unique_song_ids": null,
+        "role": "audit-only"
+      },
+      {
+        "name": "HLSD",
+        "active_rows": 0,
+        "active_unique_song_ids": 0,
+        "role": "excluded"
+      }
+    ],
+    "active_song_total": 1159
+  },
+  "validator": {
+    "role": "third-party offline verifier",
+    "reference_fields": [
+      "harmony_tokens",
+      "harmony",
+      "chords"
+    ],
+    "candidate_fields": [
+      "prediction",
+      "candidate",
+      "output",
+      "model_output",
+      "harmony_tokens",
+      "harmony"
+    ],
+    "melody_field": "abc_melody",
+    "notes": [
+      "The validator reads this contract but does not define it.",
+      "Use this manifest to keep training, evaluation, and review on the same data contract."
+    ]
+  }
+}

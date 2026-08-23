@@ -879,3 +879,21 @@ raw source
 | HLSD 转换 | `src/data/convert_hlsd.py` |
 | root completion task bank | `src/train/root_completion_v2_dataset.py` |
 | root-simple 训练入口 | `src/train/sft_root_completion_v2.py` |
+
+## 15. 实验冻结清单
+
+当前 root-simple 这轮实验已经补了一份机器可读的冻结清单：
+
+```text
+manifests/root_simple_v1.json
+```
+
+这份文件不是重复说明，而是实验的正式合同。它固定了：
+
+1. 当前 active 数据源是谁；
+2. 允许哪些和弦质量类进入 root-simple；
+3. 哪些来源只做审计，不进训练；
+4. 当前 task bank 的规模与分布；
+5. validator 读取输入时默认使用哪些字段。
+
+后续所有 root-simple 训练、评估和 validator compare，优先以这份 manifest 为准。文档里的文字说明只负责解释，manifest 才是机器执行时的约束。
