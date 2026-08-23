@@ -204,6 +204,10 @@ reference > strong candidate > weak candidate > collapsed baseline
 Satin Doll 类高 split-bar 失败
 ```
 
+如果 reference 本身是长时值 pedal / sustained sonority，但 candidate 额外拆出多段和弦，
+除了 `INTRA_BAR_SPLIT_EXTRA` 以外，还应额外打
+`HARMONIC_RHYTHM_DISTORTION`，把“和声节奏被拆坏”单独和普通 split 错误区分开。
+
 ### 6.2 Chord Token Validator
 
 目的：检查 root / quality / extension / slash 的结构化覆盖。
@@ -794,3 +798,84 @@ d_{orbit}(x,y) = \min_{a \in \langle \mathcal{A} \rangle} \mathrm{cost}(a : x \t
 | [Jazz Harmony Treebank, ISMIR 2020](https://archives.ismir.net/ismir2020/paper/000080.pdf) | 作为 jazz standards 上的 tree annotation 格式和 parser/critic benchmark。 |
 
 这些资料只作为第三方验证工具的理论和评估来源；不作为当前生成器的直接实现模板。
+
+## 14. 当前数据口径与处理流程
+
+这一节对应当前 root-simple 训练 / 验证实际用到的数据，不是 validator 输出结果。
+
+### 14.1 原始来源
+
+| 来源 | raw 入口 | 原始单位 | 原始规模 | 备注 |
+|---|---|---|---:|---|
+| EMOPIA+ | `data/raw/emopia_plus/EMOPIA+/REMI/lead_sheet/*.pkl` + `functional/lead_sheet/*.pkl` + `split/*_SL.csv` | clip / stem | 1071 stems / 387 unique songID | key 从 functional 文件读，split 从官方 CSV 读。 |
+| POP909 | `data/raw/pop909/POP909/<song_id>/` + `index.xlsx` | song | 909 songs | song-level split 由 `split_for_song(song_id)` 决定。 |
+| OpenBook | `data/raw/openbook/openbook-master/src/openbook/*.ly.mako` | lead-sheet file | 155 files | LilyPond 解析，split 由文件名 hash 决定。 |
+| HLSD | `data/raw/hlsd/lead-sheet-dataset-master/datasets/event/*_symbol_key.json` | event file | 20 files | 若有 `event_list.json` 则按清单读，否则 glob。 |
+
+### 14.2 处理后 corpus
+
+所有来源都会先被转换成 `data/processed/*.jsonl`，每行一条标准化样本。当前处理后的规模是：
+
+| 来源 | processed rows | splits | unique songIDs | 说明 |
+|---|---:|---|---:|---|
+| EMOPIA+ | 879 | train 713 / val 95 / test 71 | 372 | 每个有效 pkl 基本对应一条 row。 |
+| POP909 | 1085 | train 873 / val 105 / test 107 | 909 | 一首歌可切出多个 segment row。 |
+| OpenBook | 100 | train 75 / val 4 / test 21 | 85 | 连续和弦 span 会被切成多个 segment。 |
+| HLSD | 11 | train 11 | 11 | 只保留 `_symbol_key.json` 子集。 |
+
+这些 processed row 都已经做了统一规范化：
+
+- melody 和 chord 一起转到 C 中心；
+- 原调保存在 `original_key`；
+- 具体移调量保存在 `normalization.transpose_semitones`；
+- chord root / quality 被 canonicalize 成有限集合；
+- `harmony_tokens` 和 `chords` 同步生成，便于训练和 validator 复用。
+
+### 14.3 当前 root-simple 实验口径
+
+当前这轮 root-completion 只用简单和弦类，不做复杂功能音。
+
+| 项目 | 当前规则 |
+|---|---|
+| 训练来源 | `--datasets=EMOPIA+,POP909,OpenBook`，HLSD 未纳入这次 root-simple 运行。 |
+| quality filter | `maj,min,dom7,maj7,min7,hdim7,dim,sus2,sus4`。 |
+| OpenBook | `dataset_weight=0.0`，保留为审计来源，不进梯度。 |
+| split 用法 | train 用于训练，val 用于 balanced / natural eval，test 预留未用。 |
+| active rows | EMOPIA+ 808，POP909 978；OpenBook 79 仅保留审计，不计入训练。 |
+| active unique songs | EMOPIA+ 341，POP909 818，合计 1,159 首。 |
+| root task bank | （仅 EMOPIA+ + POP909）共 442,711 个 task。 |
+| task 分布 | `adjacent_double` 214,774；`single_internal` 105,613；`long_context_sparse` 105,604；`cadential_center` 16,720。 |
+| balanced sampling | 12 个 root 均衡采样，`transpose_to_sampled_root=True`。 |
+
+对应的源 ID 清单见 `evals/current_root_simple_v1_song_ids.md`。它只记录来源标识，不是 validator 输出。
+
+### 14.4 处理链路
+
+```text
+raw source
+  -> source-specific converter
+  -> processed jsonl
+  -> quality filter
+  -> root-completion task bank
+  -> balanced train / eval sampling
+```
+
+关键规则是：
+
+1. 先做源头转换，再做统一规范化，不在训练时临时补洞。
+2. key 统一归一到 C，保证不同调式样本能直接比较。
+3. 当前 root-simple 只保留简单和弦类，先把 root 学稳。
+4. OpenBook 先保留为审计来源，不参与梯度。
+5. 训练目标是 root，不是完整 chord symbol，也不是功能解析。
+
+### 14.5 相关实现位置
+
+| 功能 | 代码位置 |
+|---|---|
+| 统一 key / root 归一化 | `src/data/common.py` |
+| EMOPIA+ 转换 | `src/data/convert_emopia_plus.py` |
+| POP909 转换 | `src/data/convert_pop909.py` |
+| OpenBook 转换 | `src/data/convert_openbook.py` |
+| HLSD 转换 | `src/data/convert_hlsd.py` |
+| root completion task bank | `src/train/root_completion_v2_dataset.py` |
+| root-simple 训练入口 | `src/train/sft_root_completion_v2.py` |
