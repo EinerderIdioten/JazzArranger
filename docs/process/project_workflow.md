@@ -13,19 +13,6 @@
 5. 每次 review 必须对照 plan、diff 和运行结果。
 6. 研究结论、实现结论、审阅结论不能混写。
 
-### 1.1 Manifest 是什么
-
-`manifest` 不是普通配置文件，而是某条实验线的冻结合同。
-
-它至少应该明确：
-
-- 数据集范围
-- 允许的 quality / root / task 口径
-- validator 读取哪些字段
-- 被固定的外部资产和校验 hash
-
-当实验合同变化时，应该新建 manifest 版本，而不是原地改旧合同。
-
 ## 2. 角色分工
 
 | 角色 | 职责 | 输出 |
@@ -58,12 +45,6 @@
 
 - `docs/research/YYYY-MM-DD_topic.md`
 
-当 Codex 已经观察到实验结果但下一步需要外部搜索时，先写一份 handoff markdown：
-
-- `docs/research/YYYY-MM-DD_topic_handoff.md`
-
-这份 handoff 只放事实、困难、约束和搜索问题，不写最终结论。Perplexity 读完后再回传 plan。
-
 ### 3.2 Planning
 
 输入：
@@ -78,7 +59,6 @@
 - 明确范围、非目标、验收标准
 - 明确需要改的文件和不需要碰的文件
 - 明确是否要新建或更新 manifest
-- 如果是由 Perplexity 回传的计划书，必须能追溯到对应 handoff
 
 建议落盘：
 
