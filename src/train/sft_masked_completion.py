@@ -5,12 +5,13 @@ from __future__ import annotations
 import argparse
 import inspect
 import json
+import random
 from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 
-from src.data.harmony_tokens import NEW_TOKENS
+from src.data.harmony_tokens import NEW_TOKENS, ROOT_TOKENS
 from src.train.masked_completion_dataset import (
     MaskedCompletionCollator,
     Stage1MaskedCompletionDataset,
@@ -23,6 +24,7 @@ from src.train.tokenizer_setup import configure_tokenizer, resize_model_for_toke
 def training_args_kwargs(args, *, has_eval: bool) -> dict:
     from transformers import TrainingArguments
 
+    signature = inspect.signature(TrainingArguments.__init__)
     kwargs = {
         "output_dir": str(args.output_dir),
         "per_device_train_batch_size": args.per_device_train_batch_size,
@@ -32,7 +34,6 @@ def training_args_kwargs(args, *, has_eval: bool) -> dict:
         "weight_decay": args.weight_decay,
         "num_train_epochs": args.num_train_epochs,
         "max_steps": args.max_steps,
-        "warmup_ratio": args.warmup_ratio,
         "logging_steps": args.logging_steps,
         "save_steps": args.save_steps,
         "eval_steps": args.eval_steps,
@@ -44,7 +45,10 @@ def training_args_kwargs(args, *, has_eval: bool) -> dict:
         "report_to": "none",
         "remove_unused_columns": False,
     }
-    signature = inspect.signature(TrainingArguments.__init__)
+    if "warmup_ratio" in signature.parameters:
+        kwargs["warmup_ratio"] = args.warmup_ratio
+    elif "warmup_steps" in signature.parameters:
+        kwargs["warmup_steps"] = int(round(max(args.max_steps, 0) * args.warmup_ratio)) if args.max_steps > 0 else 0
     eval_strategy = "steps" if has_eval else "no"
     if "eval_strategy" in signature.parameters:
         kwargs["eval_strategy"] = eval_strategy
@@ -63,6 +67,49 @@ def harmony_token_ids(tokenizer) -> list[int]:
             raise ValueError(f"not a single token after tokenizer setup: {token} -> {encoded}")
         ids.append(encoded[0])
     return sorted(set(ids))
+
+
+def apply_single_root_balance(dataset, *, examples_per_token: int, seed: int) -> dict:
+    if examples_per_token <= 0:
+        return {}
+    rng = random.Random(seed)
+    groups = {token: [] for token in ROOT_TOKENS}
+    for example in dataset.examples:
+        answer = example.answer_text.strip()
+        if "\n" not in answer and answer in groups:
+            groups[answer].append(example)
+    selected = []
+    counts = {}
+    for token in ROOT_TOKENS:
+        examples = groups[token]
+        rng.shuffle(examples)
+        take = examples[:examples_per_token]
+        counts[token] = len(take)
+        selected.extend(take)
+    rng.shuffle(selected)
+    original_count = len(dataset.examples)
+    dataset.examples = selected
+    dataset.skipped["single_root_balance_excluded"] += original_count - len(selected)
+    return {
+        "mode": "single_root_balance",
+        "examples_per_token": examples_per_token,
+        "requested_total": len(ROOT_TOKENS) * examples_per_token,
+        "selected_total": len(selected),
+        "selected_by_root": counts,
+    }
+
+
+def apply_limit(dataset, *, limit: int | None) -> dict:
+    if limit is None:
+        return {}
+    original_count = len(dataset.examples)
+    dataset.examples = dataset.examples[:limit]
+    dataset.skipped["limit_excluded"] += original_count - len(dataset.examples)
+    return {
+        "mode": "limit",
+        "limit": limit,
+        "selected_total": len(dataset.examples),
+    }
 
 
 def _zero_old_token_rows_hook(trainable_token_ids: list[int]):
@@ -239,6 +286,10 @@ def main() -> None:
     parser.add_argument("--datasets", help="Comma-separated dataset names to include, e.g. EMOPIA+,HLSD,POP909")
     parser.add_argument("--train-last-ratio", type=float, default=0.30)
     parser.add_argument("--train-old-token-rows", action="store_true")
+    parser.add_argument("--single-root-examples-per-token", type=int, default=0)
+    parser.add_argument("--limit-train-examples", type=int)
+    parser.add_argument("--limit-eval-examples", type=int)
+    parser.add_argument("--eval-on-train", action="store_true")
     parser.add_argument("--skip-save-final", action="store_true")
     parser.add_argument("--resume-from-checkpoint")
     args = parser.parse_args()
@@ -282,17 +333,42 @@ def main() -> None:
         include_zero_weight=args.include_zero_weight,
         dataset_names=dataset_filter,
     )
+    train_filters = []
+    single_root_train_filter = apply_single_root_balance(
+        train_dataset,
+        examples_per_token=args.single_root_examples_per_token,
+        seed=args.seed,
+    )
+    if single_root_train_filter:
+        train_filters.append(single_root_train_filter)
+    limit_train_filter = apply_limit(train_dataset, limit=args.limit_train_examples)
+    if limit_train_filter:
+        train_filters.append(limit_train_filter)
+
     eval_dataset = Stage1MaskedCompletionDataset(
         data_dir=args.data_dir,
-        split="val",
+        split="train" if args.eval_on_train else "val",
         tokenizer=tokenizer,
         max_length=args.max_length,
         stage=args.stage,
-        seed=args.seed + 1000,
-        examples_per_row=1,
+        seed=args.seed if args.eval_on_train else args.seed + 1000,
+        examples_per_row=args.examples_per_row if args.eval_on_train else 1,
         include_zero_weight=args.include_zero_weight,
         dataset_names=dataset_filter,
     )
+    eval_filters = []
+    if args.eval_on_train:
+        single_root_eval_filter = apply_single_root_balance(
+            eval_dataset,
+            examples_per_token=args.single_root_examples_per_token,
+            seed=args.seed,
+        )
+        if single_root_eval_filter:
+            eval_filters.append(single_root_eval_filter)
+    limit_eval_filter = apply_limit(eval_dataset, limit=args.limit_eval_examples)
+    if limit_eval_filter:
+        eval_filters.append(limit_eval_filter)
+
     if not train_dataset:
         raise ValueError("no training examples after filtering")
     if not eval_dataset:
@@ -309,6 +385,9 @@ def main() -> None:
         "trainable": trainable_summary,
         "train": describe_masked_dataset(train_dataset),
         "eval": describe_masked_dataset(eval_dataset) if eval_dataset else None,
+        "train_filters": train_filters,
+        "eval_filters": eval_filters,
+        "eval_on_train": args.eval_on_train,
     }
     (args.output_dir / "run_data_summary.json").write_text(
         json.dumps(run_summary, indent=2, ensure_ascii=False) + "\n",

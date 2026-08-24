@@ -67,6 +67,7 @@ def _build_parser() -> argparse.ArgumentParser:
     review.add_argument("--tag-count", type=int, default=10)
     review.add_argument("--no-tag-count", type=int, default=10)
     review.add_argument("--max-per-title", type=int, default=2, help="Maximum windows kept per song case.")
+    review.add_argument("--max-windows-per-case", type=int, default=2, help="Maximum windows rendered per song case.")
     review.add_argument(
         "--tags",
         default=",".join(DEFAULT_REVIEW_TAGS),
@@ -135,6 +136,7 @@ def main(argv: list[str] | None = None) -> None:
             tag_count=args.tag_count,
             no_tag_count=args.no_tag_count,
             max_per_title=args.max_per_title,
+            max_windows_per_case=args.max_windows_per_case,
             tags=_split_fields(args.tags) or DEFAULT_REVIEW_TAGS,
         )
         print(json.dumps(summary, indent=2, ensure_ascii=False))

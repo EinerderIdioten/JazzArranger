@@ -19,6 +19,10 @@ from .types import ChordEvent, ParsedHarmony, ValidationIssue, ValidationResult
 
 RICH_QUALITY_FAMILIES = {"maj7", "min7", "hdim7", "dim", "aug", "sus2", "sus4"}
 SAFE_QUALITY_FAMILIES = {"maj", "min", "dom7"}
+ROOT_MISMATCH_THRESHOLD = 0.5
+LOCAL_TONAL_DRIFT_THRESHOLD = 0.55
+HARMONIC_RHYTHM_DISTORTION_THRESHOLD = 0.45
+HARMONIC_RHYTHM_DELTA_THRESHOLD = 2
 
 
 def _weighted_mean(sum_value: float, weight: float) -> float:
@@ -270,6 +274,10 @@ def _compare_parsed(
         "reference_quality_match_rate": _weighted_mean(quality_match_weight, content_weight),
         "reference_function_match_rate": _weighted_mean(function_match_weight, content_weight),
     }
+    boundary_count_delta = abs(metrics["candidate_boundary_count"] - metrics["reference_boundary_count"])
+    tonal_drift_index = 0.5 * metrics["root_distance"] + 0.3 * metrics["function_distance"] + 0.2 * metrics["boundary_mismatch_rate"]
+    metrics["boundary_count_delta"] = boundary_count_delta
+    metrics["tonal_drift_index"] = tonal_drift_index
 
     tags: list[str] = []
     issues: list[ValidationIssue] = []
@@ -291,6 +299,19 @@ def _compare_parsed(
                 message=f"extra {len(cand_intra)} intra-bar boundaries",
                 severity="warning",
                 details={"extra": sorted(cand_intra)},
+            )
+        )
+    if metrics["boundary_mismatch_rate"] >= HARMONIC_RHYTHM_DISTORTION_THRESHOLD and boundary_count_delta >= HARMONIC_RHYTHM_DELTA_THRESHOLD:
+        tags.append("HARMONIC_RHYTHM_DISTORTION")
+        issues.append(
+            ValidationIssue(
+                code="HARMONIC_RHYTHM_DISTORTION",
+                message="candidate boundary density departs sharply from reference",
+                severity="warning",
+                details={
+                    "boundary_mismatch_rate": metrics["boundary_mismatch_rate"],
+                    "boundary_count_delta": boundary_count_delta,
+                },
             )
         )
 
@@ -325,14 +346,17 @@ def _compare_parsed(
                 details={"function_distance": metrics["function_distance"], "root_match_rate": metrics["root_match_rate"]},
             )
         )
-    if metrics["local_key_mismatch_rate"] > 0.3:
+    if metrics["local_key_mismatch_rate"] > 0.3 or metrics["tonal_drift_index"] > LOCAL_TONAL_DRIFT_THRESHOLD:
         tags.append("LOCAL_TONAL_DRIFT")
         issues.append(
             ValidationIssue(
                 code="LOCAL_TONAL_DRIFT",
-                message="local key annotations diverge",
+                message="local tonal plan diverges",
                 severity="warning",
-                details={"local_key_mismatch_rate": metrics["local_key_mismatch_rate"]},
+                details={
+                    "local_key_mismatch_rate": metrics["local_key_mismatch_rate"],
+                    "tonal_drift_index": metrics["tonal_drift_index"],
+                },
             )
         )
     if cadence_erased:
@@ -363,7 +387,7 @@ def _compare_parsed(
                 details={"segment_count": len(melody_conflicts)},
             )
         )
-    if metrics["root_distance"] > 0.4:
+    if metrics["root_distance"] > ROOT_MISMATCH_THRESHOLD:
         tags.append("ROOT_MISMATCH")
         issues.append(
             ValidationIssue(

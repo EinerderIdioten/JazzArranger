@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from .normalize import parse_time_signature
+
 
 DEFAULT_REVIEW_TAGS = (
+    "HARMONIC_RHYTHM_DISTORTION",
     "LOCAL_TONAL_DRIFT",
     "CADENTIAL_PATTERN_ERASED",
     "QUALITY_COLLAPSE_BASIC7",
@@ -106,6 +110,128 @@ def _render_bar_diagnostics(bars: list[Mapping[str, Any]], *, limit: int = 4) ->
     return lines
 
 
+def _title_key(row: Mapping[str, Any], source_by_id: Mapping[str, Mapping[str, Any]]) -> str:
+    sample_id = str(row.get("id"))
+    source = source_by_id.get(sample_id, {})
+    return str(source.get("title") or row.get("title") or sample_id.split(":", 1)[0])
+
+
+def _window_range(source: Mapping[str, Any], row: Mapping[str, Any]) -> tuple[int, int] | None:
+    conversion = source.get("conversion", {})
+    start = conversion.get("bar_start")
+    end = conversion.get("bar_end")
+    if start is not None and end is not None:
+        return int(start), int(end)
+    sample_id = str(row.get("id") or "")
+    match = re.search(r"bars_(\d+)_(\d+)", sample_id)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    return None
+
+
+def _window_label(source: Mapping[str, Any], row: Mapping[str, Any]) -> str:
+    window_range = _window_range(source, row)
+    if window_range is not None:
+        return f"{window_range[0]}-{window_range[1]}"
+    sample_id = str(row.get("id") or "")
+    return sample_id
+
+
+def _window_sort_key(source: Mapping[str, Any], row: Mapping[str, Any], score: float) -> tuple[float, int, int, str]:
+    window_range = _window_range(source, row)
+    if window_range is None:
+        return score, 10**9, 10**9, str(row.get("id") or "")
+    return score, window_range[0], window_range[1], str(row.get("id") or "")
+
+
+def _chord_at(chords: list[Mapping[str, Any]], position: int) -> Mapping[str, Any] | None:
+    for chord in chords:
+        start = int(chord.get("start", 0))
+        end = int(chord.get("end", 0))
+        if start <= position < end:
+            return chord
+    return chords[-1] if chords else None
+
+
+def _render_bar_pattern(
+    chords: list[Mapping[str, Any]],
+    *,
+    bar_start: int,
+    bar_end: int,
+    beats_per_bar: int,
+) -> str:
+    if not chords or bar_end <= bar_start:
+        return " ".join("-" for _ in range(max(1, beats_per_bar)))
+
+    bar_grid = bar_end - bar_start
+    slot_size = max(1, round(bar_grid / max(1, beats_per_bar)))
+    tokens: list[str] = []
+    previous_label: str | None = None
+    for beat_index in range(beats_per_bar):
+        position = bar_start + beat_index * slot_size
+        chord = _chord_at(chords, position)
+        label = _chord_label(chord) if chord is not None else "-"
+        if beat_index > 0 and label == previous_label:
+            tokens.append("-")
+        else:
+            tokens.append(label)
+        previous_label = label
+    return " ".join(tokens)
+
+
+def _build_review_cases(
+    rows: list[dict[str, Any]],
+    *,
+    source_by_id: Mapping[str, Mapping[str, Any]] | None = None,
+    max_windows_per_case: int = 2,
+) -> list[dict[str, Any]]:
+    source_by_id = source_by_id or {}
+    cases_by_title: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        sample_id = str(row.get("id"))
+        source = source_by_id.get(sample_id, {})
+        title = _title_key(row, source_by_id)
+        case = cases_by_title.setdefault(
+            title,
+            {
+                "title": title,
+                "selected_by": [],
+                "windows_by_key": {},
+            },
+        )
+        for reason in row.get("selected_by", []):
+            if reason not in case["selected_by"]:
+                case["selected_by"].append(reason)
+        window_key = _window_range(source, row)
+        if window_key is None:
+            window_key = (sample_id, sample_id)  # type: ignore[assignment]
+        score = _score(row)
+        window = {
+            "row": row,
+            "source": source,
+            "score": score,
+            "selected_by": list(row.get("selected_by", [])),
+            "bar_label": _window_label(source, row),
+            "window_key": window_key,
+            "sort_key": _window_sort_key(source, row, score),
+        }
+        existing = case["windows_by_key"].get(window_key)
+        if existing is None or score < existing["score"]:
+            case["windows_by_key"][window_key] = window
+
+    cases: list[dict[str, Any]] = []
+    for case in cases_by_title.values():
+        windows = sorted(case["windows_by_key"].values(), key=lambda item: item["sort_key"])[:max_windows_per_case]
+        case["windows"] = windows
+        case["window_count"] = len(windows)
+        case["score"] = windows[0]["score"] if windows else 0.0
+        case["tags"] = sorted({tag for window in windows for tag in window["row"].get("tags", [])})
+        case["bars"] = ", ".join(window["bar_label"] for window in windows)
+        del case["windows_by_key"]
+        cases.append(case)
+    return sorted(cases, key=lambda item: (item["score"], item["title"]))
+
+
 def select_review_cases(
     results: list[dict[str, Any]],
     *,
@@ -113,7 +239,7 @@ def select_review_cases(
     worst_count: int = 20,
     tag_count: int = 10,
     no_tag_count: int = 10,
-    max_per_title: int = 6,
+    max_per_title: int = 2,
     tags: Iterable[str] = DEFAULT_REVIEW_TAGS,
 ) -> list[dict[str, Any]]:
     source_by_id = source_by_id or {}
@@ -122,9 +248,7 @@ def select_review_cases(
     title_counts: Counter[str] = Counter()
 
     def title_key(row: Mapping[str, Any]) -> str:
-        sample_id = str(row.get("id"))
-        source = source_by_id.get(sample_id, {})
-        return str(source.get("title") or sample_id.split(":", 1)[0])
+        return _title_key(row, source_by_id)
 
     def add(row: dict[str, Any], reason: str) -> bool:
         sample_id = str(row.get("id"))
@@ -168,6 +292,82 @@ def select_review_cases(
     return ordered
 
 
+def _render_window(window: dict[str, Any], *, index: int) -> list[str]:
+    row = window["row"]
+    source = window["source"]
+    sample_id = str(row.get("id"))
+    metrics = row.get("metrics", {})
+    tags_text = ", ".join(f"`{tag}`" for tag in row.get("tags", [])) or "`none`"
+    reasons = ", ".join(f"`{reason}`" for reason in window.get("selected_by", [])) or "`none`"
+    key = row.get("key") or source.get("key") or "-"
+    meter = source.get("time_signature", "-")
+    conversion = source.get("conversion", {})
+    bar_start = conversion.get("bar_start")
+    bar_end = conversion.get("bar_end")
+    reference_chords = list(source.get("reference_chords", []))
+    candidate_chords = list(source.get("candidate_chords", []))
+    beats_per_bar = parse_time_signature(meter)[0] if meter and meter != "-" else 4
+    total_grid = int(row.get("total_grid") or source.get("total_grid") or 0)
+    bar_count = 0
+    bar_grid = 0
+    if bar_start is not None and bar_end is not None:
+        bar_count = int(bar_end) - int(bar_start) + 1
+        if bar_count > 0 and total_grid > 0:
+            bar_grid = total_grid // bar_count
+
+    lines = [
+        f"### Window {index} — bars {window['bar_label']}",
+        "",
+        f"- id: `{sample_id}`",
+        f"- selected_by: {reasons}",
+        f"- key: `{key}`",
+        f"- meter: `{meter}`",
+        f"- score: `{_format_float(metrics.get('score'))}`",
+        f"- tags: {tags_text}",
+        "",
+    ]
+    if bar_count <= 0 or bar_grid <= 0:
+        lines.extend(["- unable to render bar grid", ""])
+        return lines
+
+    for bar_offset in range(bar_count):
+        absolute_bar = int(bar_start) + bar_offset if bar_start is not None else bar_offset + 1
+        local_start = bar_offset * bar_grid
+        local_end = local_start + bar_grid
+        ref_line = _render_bar_pattern(
+            reference_chords,
+            bar_start=local_start,
+            bar_end=local_end,
+            beats_per_bar=beats_per_bar,
+        )
+        cand_line = _render_bar_pattern(
+            candidate_chords,
+            bar_start=local_start,
+            bar_end=local_end,
+            beats_per_bar=beats_per_bar,
+        )
+        lines.extend(
+            [
+                f"#### Bar {absolute_bar}",
+                f"reference: `{ref_line}`",
+                f"candidate:  `{cand_line}`",
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
+            "### Rating",
+            "- Acceptability: [ ] acceptable [ ] debatable [ ] wrong",
+            "- Severity: ``",
+            "- Needs rule change: [ ] yes",
+            "- Comment:",
+            "",
+        ]
+    )
+    return lines
+
+
 def render_review_markdown(
     results: list[dict[str, Any]],
     *,
@@ -177,7 +377,8 @@ def render_review_markdown(
     worst_count: int = 20,
     tag_count: int = 10,
     no_tag_count: int = 10,
-    max_per_title: int = 6,
+    max_per_title: int = 2,
+    max_windows_per_case: int = 2,
     tags: Iterable[str] = DEFAULT_REVIEW_TAGS,
 ) -> str:
     source_by_id = source_by_id or {}
@@ -190,10 +391,12 @@ def render_review_markdown(
         max_per_title=max_per_title,
         tags=tags,
     )
+    cases = _build_review_cases(selected, source_by_id=source_by_id, max_windows_per_case=max_windows_per_case)
     tag_counts = Counter(tag for row in results for tag in row.get("tags", []))
     issue_counts = Counter(issue.get("code") for row in results for issue in row.get("issues", []))
     scores = [_score(row) for row in results]
     mean_score = sum(scores) / len(scores) if scores else 0.0
+    selected_windows = sum(case["window_count"] for case in cases)
 
     lines = [
         "# Harmony Validator Review Cases",
@@ -205,7 +408,9 @@ def render_review_markdown(
         f"- result_jsonl: `{result_path}`" if result_path else "- result_jsonl: `-`",
         f"- source_jsonl: `{source_path}`" if source_path else "- source_jsonl: `-`",
         f"- total_results: `{len(results)}`",
-        f"- selected_cases: `{len(selected)}`",
+        f"- selected_cases: `{len(cases)}`",
+        f"- selected_windows: `{selected_windows}`",
+        f"- max_windows_per_case: `{max_windows_per_case}`",
         f"- mean_score: `{mean_score:.3f}`",
         "",
         "### Tag Counts",
@@ -227,53 +432,28 @@ def render_review_markdown(
             "",
             "## Review Checklist",
             "",
-            "For each case, mark whether the validator label is musically justified and whether the severity feels right.",
+            "Each case is one song. Review at most two windows per case.",
             "",
         ]
     )
 
-    for index, row in enumerate(selected, start=1):
-        sample_id = str(row.get("id"))
-        source = source_by_id.get(sample_id, {})
-        metrics = row.get("metrics", {})
-        tags_text = ", ".join(f"`{tag}`" for tag in row.get("tags", [])) or "`none`"
-        reasons = ", ".join(f"`{reason}`" for reason in row.get("selected_by", []))
-        issues = row.get("issues", [])
-        title = source.get("title") or sample_id
-        conversion = source.get("conversion", {})
-        bars = "-"
-        if conversion.get("bar_start") is not None and conversion.get("bar_end") is not None:
-            bars = f"{conversion.get('bar_start')}-{conversion.get('bar_end')}"
+    for index, case in enumerate(cases, start=1):
+        selected_by = ", ".join(f"`{reason}`" for reason in case.get("selected_by", [])) or "`none`"
+        tags_text = ", ".join(f"`{tag}`" for tag in case.get("tags", [])) or "`none`"
         lines.extend(
             [
-                f"## Case {index}: {title}",
+                f"## Case {index}: {case['title']}",
                 "",
-                f"- id: `{sample_id}`",
-                f"- selected_by: {reasons}",
-                f"- title: `{title}`",
-                f"- bars: `{bars}`",
-                f"- key: `{row.get('key')}`",
-                f"- meter: `{source.get('time_signature', '-')}`",
-                f"- score: `{_format_float(metrics.get('score'))}`",
-                f"- tags: {tags_text}",
-                "",
-                "- [ ] labels are musically justified",
-                "- [ ] severity/ranking is reasonable",
-                "- [ ] needs validator rule change",
-                "",
-                "### Metrics",
+                f"- title: `{case['title']}`",
+                f"- selected_by: {selected_by}",
+                f"- windows_shown: `{case['window_count']}`",
+                f"- auto score: `{_format_float(case.get('score'))}`",
+                f"- auto tags: {tags_text}",
                 "",
             ]
         )
-        lines.extend(_render_metrics(metrics))
-        if issues:
-            lines.extend(["### Issues", "", "| code | message |", "|---|---|"])
-            for issue in issues:
-                lines.append(f"| `{issue.get('code')}` | {issue.get('message')} |")
-            lines.append("")
-        lines.extend(_render_chords(list(source.get("reference_chords", [])), title="Reference Chords"))
-        lines.extend(_render_chords(list(source.get("candidate_chords", [])), title="Candidate Chords"))
-        lines.extend(_render_bar_diagnostics(list(row.get("bar_diagnostics", []))))
+        for window_index, window in enumerate(case["windows"], start=1):
+            lines.extend(_render_window(window, index=window_index))
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -286,11 +466,22 @@ def write_review_markdown(
     worst_count: int = 20,
     tag_count: int = 10,
     no_tag_count: int = 10,
-    max_per_title: int = 6,
+    max_per_title: int = 2,
+    max_windows_per_case: int = 2,
     tags: Iterable[str] = DEFAULT_REVIEW_TAGS,
 ) -> dict[str, Any]:
     results = load_jsonl(result_jsonl)
     source_by_id = load_source_by_id(source_jsonl)
+    selected = select_review_cases(
+        results,
+        source_by_id=source_by_id,
+        worst_count=worst_count,
+        tag_count=tag_count,
+        no_tag_count=no_tag_count,
+        max_per_title=max_per_title,
+        tags=tags,
+    )
+    cases = _build_review_cases(selected, source_by_id=source_by_id, max_windows_per_case=max_windows_per_case)
     markdown = render_review_markdown(
         results,
         source_by_id=source_by_id,
@@ -300,15 +491,16 @@ def write_review_markdown(
         tag_count=tag_count,
         no_tag_count=no_tag_count,
         max_per_title=max_per_title,
+        max_windows_per_case=max_windows_per_case,
         tags=tags,
     )
     output_md.parent.mkdir(parents=True, exist_ok=True)
     output_md.write_text(markdown, encoding="utf-8")
-    selected_count = markdown.count("\n## Case ")
     return {
         "result_jsonl": str(result_jsonl),
         "source_jsonl": str(source_jsonl) if source_jsonl else None,
         "output_md": str(output_md),
         "total_results": len(results),
-        "selected_cases": selected_count,
+        "selected_cases": len(cases),
+        "selected_windows": sum(case["window_count"] for case in cases),
     }
